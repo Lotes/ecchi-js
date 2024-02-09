@@ -1,0 +1,12 @@
+{
+    "projectName": "Ecchi",
+    "languages": [{
+        "id": "ecchi",
+        "grammar": "src/language/ecchi.langium",
+        "fileExtensions": [".ecchi"],
+        "textMate": {
+            "out": "syntaxes/ecchi.tmLanguage.json"
+        }
+    }],
+    "out": "src/language/generated"
+}
