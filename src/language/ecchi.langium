@@ -63,7 +63,9 @@ TypeReference:
     | {infer NumberType}'number'
     | {infer StringType}'string'
     | {infer BooleanType}'boolean'
-    | {infer ListType} '[' type=TypeReference ']'
+    | {infer NullType}'null'
+    | {infer ArrayType} '[' type=TypeReference ']'
+    | {infer ObjectType} '{' members+=PropertyMember* '}'
     ;
 
 Expression infers Expression:

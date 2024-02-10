@@ -9,7 +9,8 @@ import {
   getContainerOfType,
   LangiumServices,
 } from "langium";
-import { EcchiAstType, InterfaceDefinition, PropertyMember, PropertyMemberAccess, RootMember, isDefinition, isForMember, isInterfaceDefinition, isModel, isTypeDefinitionReference, isUserDefinition } from "./generated/ast.js";
+import { EcchiAstType, isDefinition, isInterfaceDefinition, isModel, isObjectType } from "./generated/ast.js";
+import { inferType } from "./type-system/ecchi-infer-type.js";
 
 export class EcchiScopeProvider extends DefaultScopeProvider {
   constructor(services: LangiumServices) {
@@ -70,51 +71,14 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
               typeof container
             >;
           if (property === "member") {
-            switch(container.receiver.$type) {
-              case "RootMember": {
-                let type: InterfaceDefinition|undefined = undefined;
-                if((container.receiver as RootMember).isSubjectRoot) {
-                  type = getContainerOfType(container, isForMember)?.subject.ref?.type.ref;
-                } else {
-                  type = getContainerOfType(container, isUserDefinition)?.type.ref;
-                }
-                if(!type) {
-                  return this.getGlobalScope(referenceType, referenceInfo);
-                }
-                const members = this.getMembersOfInterface(type);
-                return this.createScopeForNodes(members);
-              }
-              break;              
-              case "PropertyMemberAccess": {
-                const memberType = (container.receiver as PropertyMemberAccess).member.ref?.type;
-                if(memberType && isTypeDefinitionReference(memberType)) {
-                  const unrefMemberType = memberType.type.ref;
-                  if(unrefMemberType && isInterfaceDefinition(unrefMemberType)) {
-                    return this.createScopeForNodes(unrefMemberType.members);
-                  }
-                }
-              }
-              break;
-              case "ArrayMemberAccess": {
-              }
-              break;
-              case "Parentheses": {
-
-              }
-              break;
-              case "BinaryExpression":
-              case "BooleanLiteral":
-              case "UnaryExpression":
-              case "NullLiteral":
-              case "NumberLiteral":
-              case "StringLiteral": {
-                //nothing
-              }
-              break;
-              default: assertUnreachable(container.receiver);
+            const receiverType = inferType(container.receiver);
+            if(isObjectType(receiverType)) {
+              return this.createScopeFromNodes(receiverType.members);
             }
+            return this.getGlobalScope(referenceType, referenceInfo);
+          } else {
+            assertUnreachable(property);
           }
-          return this.getGlobalScope(referenceType, referenceInfo);
         }
         break;
       case "SubjectDefinition":
@@ -157,13 +121,5 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
       nodes.map((node) => this.descriptions.createDescription(node, node.name)),
       outerScope
     );
-  }
-
-  private getMembersOfInterface(iface: InterfaceDefinition): PropertyMember[] {
-    return iface.superInterface?.ref
-      ? this.getMembersOfInterface(iface.superInterface.ref)!.concat(
-          iface.members
-        )
-      : iface.members;
   }
 }
