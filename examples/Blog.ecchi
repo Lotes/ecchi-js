@@ -15,14 +15,13 @@ interface ArticleType {
   author: UserType;
   published: boolean;
 }
-
 interface CommentType {
   id: number;
   content: string;
   createdAt: string;
   updatedAt: string;
   author: UserType;
-  article: ArticleType;
+  article: ArticleType; 
   published: boolean;
 }
 

@@ -8,8 +8,9 @@ import {
   NamedAstNode,
   getContainerOfType,
   LangiumServices,
+  EMPTY_SCOPE,
 } from "langium";
-import { EcchiAstType, isDefinition, isInterfaceDefinition, isModel, isObjectType } from "./generated/ast.js";
+import { EcchiAstType, InterfaceDefinition, TypeDefinitionReference, TypeReference, isDefinition, isInterfaceDefinition, isModel, isObjectType, isTypeDefinition } from "./generated/ast.js";
 import { inferType } from "./type-system/ecchi-infer-type.js";
 
 export class EcchiScopeProvider extends DefaultScopeProvider {
@@ -81,8 +82,19 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           }
         }
         break;
+      case "TypeDefinitionReference": {
+        const property =
+            referenceInfo.property as CrossReferencesOfAstNodeType<
+              typeof container
+            >;
+          if (property === "type") {
+            return this.getMembers1(container);;
+          } else {
+            assertUnreachable(property);
+          }
+      }
+      break;
       case "SubjectDefinition":
-      case "TypeDefinitionReference":
       case "UserDefinition": {
         const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
@@ -113,6 +125,38 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
         assertUnreachable(container);
     }
   }
+  private getMembers1(expression: TypeDefinitionReference): Scope {
+    const definition = expression.type.ref;
+    if(!definition) {
+      return EMPTY_SCOPE;
+    } else if(isInterfaceDefinition(definition)) {
+      return this.getInterfaceMembers(definition);
+    } else if(isTypeDefinition(definition)) {
+      return this.getMembers2(definition.expression);
+    } else {
+      assertUnreachable(definition);
+    }
+  }
+  private getInterfaceMembers(definition: InterfaceDefinition): Scope {
+    return this.createScopeFromNodes(definition.members, definition.superInterface?.ref ? this.getInterfaceMembers(definition.superInterface.ref) :undefined);
+  }
+  private getMembers2(expression: TypeReference): Scope {
+    switch (expression.$type) {
+      case "ArrayType":
+      case "BooleanType":
+      case "NullType":
+      case "NumberType":
+      case "StringType":
+        return EMPTY_SCOPE;
+      case "TypeDefinitionReference":
+        return this.getMembers1(expression);
+      case "ObjectType":
+        return this.createScopeFromNodes(expression.members);
+      default:
+        assertUnreachable(expression);
+    }
+  }
+
   private createScopeFromNodes(
     nodes: NamedAstNode[],
     outerScope?: Scope
