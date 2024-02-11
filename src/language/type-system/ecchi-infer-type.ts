@@ -1,5 +1,5 @@
 import { AstNode, assertUnreachable, getContainerOfType } from "langium";
-import { ArrayMemberAccess, BinaryExpression, Expression, InterfaceDefinition, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isArrayType, isForMember, isUserDefinition } from "../generated/ast.js";
+import { ArrayMemberAccess, BinaryExpression, Expression, InterfaceDefinition, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isArrayType, isForMember, isInterfaceDefinition, isTypeDefinition, isUserDefinition } from "../generated/ast.js";
 
 export class TypeInferenceError<N extends AstNode> extends Error {
   constructor(message: string, public expression: N, public property: Exclude<keyof N, `$${string}`>) {
@@ -41,7 +41,22 @@ function inferPropertyMemberAccess(expression: PropertyMemberAccess) {
   if(!memberType) {
     throw new TypeInferenceError('Unknown member type.', expression, 'member');
   }
-  return memberType;
+  switch(memberType.$type) {
+    case 'TypeDefinitionReference':
+      const ref = memberType.type.ref;
+      if(!ref) {
+        throw new TypeInferenceError('Unknown member type.', expression, 'member');
+      } else if(isInterfaceDefinition(ref)) {
+        return Types.Object(ref);
+      } else if(isTypeDefinition(ref)) {
+        return ref.expression;
+      } else {
+        assertUnreachable(ref);
+      }
+      break;
+    default:
+      return memberType;
+  }
 }
 
 function inferArrayMemberAccess(expression: ArrayMemberAccess) {

@@ -18,7 +18,7 @@ describe("Cross references", () => {
   test("Scoping", async () => {
     const document = await parse(`
     interface UserType { id: number }
-    interface ArticleType {}
+    interface ArticleType { author: UserType }
     user of UserType {
       subject Article of ArticleType {
         action read
@@ -26,7 +26,7 @@ describe("Cross references", () => {
       }
       role NormalUser {
         for Article {
-          allow read when user.id == 1
+          allow read when user.id == subject.author.id
         }
       }
     }

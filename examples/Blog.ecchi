@@ -55,7 +55,7 @@ user of UserType {
       allow create
       allow read
       allow archive when subject.author.id == user.id
-      allow publish when user.id == user.id
+      allow publish when user.id == user.id 
     }
     for Comment {
       allow answer

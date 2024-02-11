@@ -8,9 +8,18 @@ import {
   NamedAstNode,
   getContainerOfType,
   LangiumServices,
-  EMPTY_SCOPE,
+  URI,
+  getDocument
 } from "langium";
-import { EcchiAstType, InterfaceDefinition, TypeDefinitionReference, TypeReference, isDefinition, isInterfaceDefinition, isModel, isObjectType, isTypeDefinition } from "./generated/ast.js";
+import {
+  EcchiAstType,
+  InterfaceDefinition,
+  TypeDefinition,
+  isDefinition,
+  isInterfaceDefinition,
+  isModel,
+  isObjectType,
+} from "./generated/ast.js";
 import { inferType } from "./type-system/ecchi-infer-type.js";
 
 export class EcchiScopeProvider extends DefaultScopeProvider {
@@ -73,7 +82,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             >;
           if (property === "member") {
             const receiverType = inferType(container.receiver);
-            if(isObjectType(receiverType)) {
+            if (isObjectType(receiverType)) {
               return this.createScopeFromNodes(receiverType.members);
             }
             return this.getGlobalScope(referenceType, referenceInfo);
@@ -82,79 +91,64 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           }
         }
         break;
-      case "TypeDefinitionReference": {
-        const property =
+      case "TypeDefinitionReference":
+        {
+          const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
               typeof container
             >;
           if (property === "type") {
-            return this.getMembers1(container);;
+            return this.getTypeDefs(getDocument(container).uri);
           } else {
             assertUnreachable(property);
           }
-      }
-      break;
+        }
+        break;
       case "SubjectDefinition":
-      case "UserDefinition": {
-        const property =
+      case "UserDefinition":
+        {
+          const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
               typeof container
             >;
           if (property === "type") {
-            return this.createScopeForNodes(getContainerOfType(container, isModel)!.elements.filter(isDefinition));
+            return this.createScopeForNodes(
+              getContainerOfType(container, isModel)!.elements.filter(
+                isDefinition
+              )
+            );
           } else {
             assertUnreachable(property);
           }
-      }
-      break;
-      case "SelectSingle":{
-        const property =
+        }
+        break;
+      case "SelectSingle":
+        {
+          const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
               typeof container
             >;
           if (property === "action") {
             return container.$container.$container.subject.ref
-              ? this.createScopeForNodes(container.$container.$container.subject.ref?.members)
+              ? this.createScopeForNodes(
+                  container.$container.$container.subject.ref?.members
+                )
               : this.getGlobalScope(referenceType, referenceInfo);
           } else {
             assertUnreachable(property);
           }
-      }
-      break;
+        }
+        break;
       default:
         assertUnreachable(container);
     }
   }
-  private getMembers1(expression: TypeDefinitionReference): Scope {
-    const definition = expression.type.ref;
-    if(!definition) {
-      return EMPTY_SCOPE;
-    } else if(isInterfaceDefinition(definition)) {
-      return this.getInterfaceMembers(definition);
-    } else if(isTypeDefinition(definition)) {
-      return this.getMembers2(definition.expression);
-    } else {
-      assertUnreachable(definition);
-    }
-  }
-  private getInterfaceMembers(definition: InterfaceDefinition): Scope {
-    return this.createScopeFromNodes(definition.members, definition.superInterface?.ref ? this.getInterfaceMembers(definition.superInterface.ref) :undefined);
-  }
-  private getMembers2(expression: TypeReference): Scope {
-    switch (expression.$type) {
-      case "ArrayType":
-      case "BooleanType":
-      case "NullType":
-      case "NumberType":
-      case "StringType":
-        return EMPTY_SCOPE;
-      case "TypeDefinitionReference":
-        return this.getMembers1(expression);
-      case "ObjectType":
-        return this.createScopeFromNodes(expression.members);
-      default:
-        assertUnreachable(expression);
-    }
+  private getTypeDefs(uri: URI): Scope {
+    const set = new Set<string>([uri.toString()]);
+    return this.createScope([
+      ...this.indexManager.allElements(InterfaceDefinition, set),
+      ...this.indexManager.allElements(TypeDefinition, set)
+    ]);
   }
 
   private createScopeFromNodes(
