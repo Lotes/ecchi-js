@@ -3,8 +3,9 @@
 !.vscode/launch.json
 !.vscode/tasks.json
 node_modules/
-out/
-src/language/generated/
+**/out/
+packages/language/src/generated/
+packages/vscode-extension/syntaxes/
 static/bundle/
 static/monaco-editor-workers/
 static/worker/

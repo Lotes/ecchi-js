@@ -1,0 +1,31 @@
+{
+  "name": "@ecchi-js/language",
+  "description": "Ecchi.js language",
+  "version": "0.0.1",
+  "files": [
+    "out",
+    "src"
+  ],
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf out",
+    "test": "vitest",
+    "build": "tsc -b tsconfig.src.json",
+    "lint": "eslint src --ext ts",
+    "langium:generate": "langium generate",
+    "langium:watch": "langium generate --watch",
+    "vscode:prepublish": "npm run build && npm run lint"
+  },
+  "dependencies": {
+    "langium": "~2.1.0",
+    "vscode-languageclient": "~9.0.1",
+    "vscode-languageserver": "~9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "~20.11.17",
+    "concurrently": "~8.2.1",
+    "langium-cli": "~2.1.0",
+    "typescript": "~5.1.6"
+  },
+  "displayName": "ecchi-js-language"
+}

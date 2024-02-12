@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/language/tsconfig.src.json" },
+    { "path": "./packages/language/tsconfig.test.json" },
+    { "path": "./packages/vscode-extension/tsconfig.json" },
+  ]
+}

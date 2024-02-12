@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { createEcchiServices } from "../../src/language/ecchi-module.js";
+import { createEcchiServices } from "../src/ecchi-module.js";
 import { EmptyFileSystem } from "langium";
 import { clearDocuments, parseHelper } from "langium/test";
-import { InterfaceDefinition, Model, RoleDefinition, SubjectDefinition, UserDefinition } from "../../src/language/generated/ast.js";
-import { assertNoErrors } from "../utils.js";
-import { SelectSingle } from "../../src/language/generated/ast.js";
+import { InterfaceDefinition, Model, RoleDefinition, SubjectDefinition, UserDefinition } from "../src/generated/ast.js";
+import { assertNoErrors } from "./utils.js";
+import { SelectSingle } from "../src/generated/ast.js";
 
 describe("Cross references", () => {
   const services = createEcchiServices(EmptyFileSystem);
