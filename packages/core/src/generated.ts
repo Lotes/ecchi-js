@@ -1,4 +1,4 @@
-import { Reflection, Subject } from "./types.js";
+import { Condition, Reflection, Role, Subject } from "./index.js";
 
 export interface UserType { 
   $type: 'UserType';
@@ -25,8 +25,15 @@ export const $Reflection = new Reflection<$Types>({
 
 export const $Subjects = {
   Article: new Subject<UserType, ArticleType, 'read'|'edit'|'create'>({
-    read: [[1, 6], 0, undefined],
-    edit: [[2, 5], 1, (user: UserType, article: ArticleType) => user.id === article.author.id],
-    create: [[3, 4], 2, undefined],
+    read: [[1, 6], 0],
+    edit: [[2, 5], 1],
+    create: [[3, 4], 2],
   })
-}
+};
+
+const isAuthor: Condition<UserType, ArticleType> = (user, article) => user.id === article.author.id;
+
+export const $Roles = {
+  NormalUser: new Role<UserType, typeof $Subjects>($Subjects),
+  Admin: new Role<UserType, typeof $Subjects>($Subjects)
+};
