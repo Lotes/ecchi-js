@@ -9,7 +9,6 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf out",
-    "test": "vitest",
     "build": "tsc -b tsconfig.src.json",
     "lint": "eslint src --ext ts",
     "langium:generate": "langium generate",
