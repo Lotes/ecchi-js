@@ -1,4 +1,4 @@
-import { ActionsOf, Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "../src/index.js";
+import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "../src/index.js";
 
 export interface UserType { 
   $type: 'UserType';

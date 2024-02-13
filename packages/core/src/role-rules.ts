@@ -1,3 +1,4 @@
+import { BitmaskFactory } from "./bitmasks.js";
 import { TypeBase } from "./common.js";
 import { Condition } from "./conditions.js";
 import { TypesBase } from "./reflection.js";
@@ -9,7 +10,7 @@ export type RoleRule<TUser extends TypeBase, TSubject extends TypeBase, TActions
   actions: TActions[];
 }
 
-export type RoleRulesInput<
+export type RoleRulesBase<
   TUser extends TypeBase,
   TTypes extends TypesBase,
   TSubjectActions extends SubjectActionsBase<TTypes>
@@ -25,28 +26,7 @@ export class RoleRules<
 > {
   constructor(
     private readonly subjectActions: TSubjectActions,
-    private readonly rules: RoleRulesInput<TUser, TTypes, TSubjectActions>
-  ) {}
-  // private apply<TSubject extends TSubjects[keyof TSubjects]>(
-  //   subjectName: keyof TSubjects,
-  //   user: TUser,
-  //   subject: TSubject,
-  //   allow: (...action: ActionsOfSubject<TUser, TSubjects, typeof subjectName>[]) => void,
-  //   forbid: (...action: ActionsOfSubject<TUser, TSubjects, typeof subjectName>[]) => void
-  // ) {
-  //   if(!(subjectName in this.rules)) { return; }
-  //   const subjectRules = this.getRulesOfSubject(subjectName);
-  //   for (const subjectRule of subjectRules) {
-  //     if(!subjectRule.conditions || and<TUser, TSubject>(subjectRule.conditions as any)(user, subject)) {
-  //       if(subjectRule.kind === "allow") {
-  //         allow(...subjectRule.actions as any);
-  //       } else {
-  //         forbid(...subjectRule.actions as any);
-  //       }
-  //     }
-  //   }
-  // }
-  // private getRulesOfSubject(subjectName: keyof TSubjects): TSubjects[typeof subjectName] extends Subject<TUser, infer TSubject, infer TActions> ? RoleRule<TUser, TSubject, TActions>[] : never {
-  //   return this.subjectActions[subjectName] as any;
-  // }
+    private readonly roleRules: RoleRulesBase<TUser, TTypes, TSubjectActions>
+  ) {
+  }
 }

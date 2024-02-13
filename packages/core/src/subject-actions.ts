@@ -1,33 +1,44 @@
+import { Bitmask, BitmaskFactory } from "./bitmasks.js";
 import { NestedSetElement, isSubTreeOf } from "./common.js";
 import { TypesBase } from "./reflection.js";
 
 export type NestedActionElement = [NestedSetElement, number];
+export type ActionMasks<TAction extends string> = {[A in TAction]: Bitmask<A>};
 
 export class SubjectActions<TAction extends string> {
   private reverseMap: Map<number, TAction> = new Map();
+  private maskFactory: BitmaskFactory<TAction>;
+  private allowedMasks: ActionMasks<TAction>;
+  private forbiddenMasks: ActionMasks<TAction>;
+
   constructor(private readonly actions: Record<TAction, NestedActionElement>) {
     for(const action in actions) {
       this.reverseMap.set(actions[action][1], action);
     }
+    this.maskFactory = new BitmaskFactory(this.actionMap);
+    this.allowedMasks = {} as any;
+    this.forbiddenMasks = {} as any;
+    for (const [action] of this.actionMap) {
+      this.allowedMasks[action] = this.maskFactory.createMask(...this.getActionParentsAndSelf(action)) as any;
+      this.forbiddenMasks[action] = this.maskFactory.createMask(...this.getActionChildrenAndSelf(action)) as any;  
+    }
   }
-  get actionCount(): number {
-    return Object.keys(this.actions).length;
+  private get actionMap(): Map<TAction, number> {
+    const result = new Map<TAction, number>();
+    for (const [action, element] of Object.entries(this.actions)) {
+      result.set(action as TAction, (element as NestedActionElement)[1]);
+    }
+    return result;
   }
-  toActionIndex(action: TAction): number {
-    return this.actions[action][1];
-  }
-  fromActionIndex(actionIndex: number): TAction {
-    return this.reverseMap.get(actionIndex)!;
-  }
-  getActionParentsAndSelf(action: TAction): TAction[] {
+  private getActionParentsAndSelf(action: TAction): TAction[] {
     return Object.keys(this.actions)
           .filter((otherAction) => this.isSubActionOf(otherAction as TAction, action)) as TAction[]
   }
-  getActionChildrenAndSelf(action: TAction): TAction[] {
+  private getActionChildrenAndSelf(action: TAction): TAction[] {
     return Object.keys(this.actions)
           .filter((otherAction) => this.isSubActionOf(action, otherAction as TAction)) as TAction[]
   }
-  isSubActionOf<T1 extends TAction, T2 extends TAction>(sub: T1, sup: T2): boolean {
+  private isSubActionOf<T1 extends TAction, T2 extends TAction>(sub: T1, sup: T2): boolean {
     return isSubTreeOf(this.actions[sub][0], this.actions[sup][0]);
   }
 }
