@@ -1,6 +1,6 @@
 import { TypeBase } from "./common.js";
-import { Role } from "./roles.js";
-import { Subject } from "./subjects.js";
+import { Role } from "./role-rules.js";
+import { Subject } from "./subject-actions.js";
 
 class PermissionsBase<
   TUser extends TypeBase,

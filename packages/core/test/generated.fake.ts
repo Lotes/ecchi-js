@@ -1,4 +1,4 @@
-import { Reflection, Role, Subject, not } from "../src/index.js";
+import { ActionsOf, Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "../src/index.js";
 
 export interface UserType { 
   $type: 'UserType';
@@ -23,20 +23,20 @@ export const $Reflection = new Reflection<$Types>({
   UserType: [3, 4]  
 });
 
-export const $Subjects = {
-  Article: new Subject<UserType, ArticleType, 'read'|'edit'|'create'>({
+export const $SubjectActions = {
+  Article: ["ArticleType", new SubjectActions<'read'|'edit'|'create'>({
     read: [[1, 6], 0],
     edit: [[2, 5], 1],
     create: [[3, 4], 2],
-  })
-};
+  })]
+} satisfies SubjectActionsBase<$Types>;
 
 const $Conditions = {
   isAuthor: (user: UserType, article: ArticleType) => user.id === article.author.id
 }
 
 export const $Roles = {
-  NormalUser: new Role<UserType, typeof $Subjects>($Subjects, {
+  NormalUser: new RoleRules<UserType, $Types, typeof $SubjectActions>($SubjectActions, {
     Article: [{
       conditions: [$Conditions.isAuthor],
       kind: 'allow',
@@ -47,7 +47,7 @@ export const $Roles = {
       actions: ['read', 'create']
     }]
   }),
-  Admin: new Role($Subjects, {
+  Admin: new RoleRules<UserType, $Types, typeof $SubjectActions>($SubjectActions, {
     Article: [{
       kind: 'allow',
       actions: ['read', 'edit', 'create']
