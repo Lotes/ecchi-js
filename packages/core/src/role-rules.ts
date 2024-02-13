@@ -1,4 +1,3 @@
-import { BitmaskFactory } from "./bitmasks.js";
 import { TypeBase } from "./common.js";
 import { Condition } from "./conditions.js";
 import { TypesBase } from "./reflection.js";

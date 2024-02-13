@@ -8,8 +8,8 @@ export type ActionMasks<TAction extends string> = {[A in TAction]: Bitmask<A>};
 export class SubjectActions<TAction extends string> {
   private reverseMap: Map<number, TAction> = new Map();
   private maskFactory: BitmaskFactory<TAction>;
-  private allowedMasks: ActionMasks<TAction>;
-  private forbiddenMasks: ActionMasks<TAction>;
+  public allowedMasks: ActionMasks<TAction>;
+  public forbiddenMasks: ActionMasks<TAction>;
 
   constructor(private readonly actions: Record<TAction, NestedActionElement>) {
     for(const action in actions) {
