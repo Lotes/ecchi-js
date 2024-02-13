@@ -22,7 +22,7 @@ export class Role<
     private readonly subjects: TSubjects,
     private readonly rules: RoleRules<TUser, TSubjects>
   ) {}
-  apply<TSubject extends TSubjects[keyof TSubjects]>(
+  private apply<TSubject extends TSubjects[keyof TSubjects]>(
     subjectName: keyof TSubjects,
     user: TUser,
     subject: TSubject,

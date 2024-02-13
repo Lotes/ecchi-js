@@ -1,4 +1,4 @@
-import { Reflection, Role, Subject, not } from "./index.js";
+import { Reflection, Role, Subject, not } from "../src/index.js";
 
 export interface UserType { 
   $type: 'UserType';
