@@ -1,4 +1,4 @@
-import { Reflection, Role, Subject, makeTrue, not } from "./index.js";
+import { Reflection, Role, Subject, not } from "./index.js";
 
 export interface UserType { 
   $type: 'UserType';
@@ -31,7 +31,7 @@ export const $Subjects = {
   })
 };
 
-export const $Conditions = {
+const $Conditions = {
   isAuthor: (user: UserType, article: ArticleType) => user.id === article.author.id
 }
 
