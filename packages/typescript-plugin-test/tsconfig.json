@@ -3,7 +3,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out",
+    "outDir": "./out",
     "plugins": [{
       "name": "@ecchi-js/typescript-plugin"
     }]

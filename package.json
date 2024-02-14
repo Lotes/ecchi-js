@@ -10,7 +10,8 @@
     "clean": "npm run clean --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "test": "vitest",
-    "lint": "eslint packages/*/src --ext ts",
+    "lint:es": "eslint packages/*/src --ext ts",
+    "lint:npm": " npmPkgJsonLint -c .npmpackagejsonlintrc.json .",
     "langium:generate": "npm run langium:generate -w packages/language"
   },
   "devDependencies": {
@@ -21,6 +22,7 @@
     "concurrently": "~8.2.1",
     "eslint": "~8.47.0",
     "langium-cli": "~2.1.0",
+    "npm-package-json-lint": "^7.1.0",
     "typescript": "~5.1.6",
     "vitest": "^1.2.2"
   }

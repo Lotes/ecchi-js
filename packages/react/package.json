@@ -3,10 +3,9 @@
   "description": "Ecchi.js React components",
   "version": "0.0.1",
   "files": [
-    "out",
-    "src"
+    "out"
   ],
-  "types": "out/",
+  "types": "index.d.ts",
   "type": "module",
   "scripts": {
     "clean": "rm -rf out",

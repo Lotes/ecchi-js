@@ -3,10 +3,9 @@
   "description": "Ecchi.js core",
   "version": "0.0.1",
   "files": [
-    "out",
-    "src"
+    "out"
   ],
-  "types": "out/index.d.ts",
+  "types": "index.d.ts",
   "type": "module",
   "scripts": {
     "clean": "rm -rf out",

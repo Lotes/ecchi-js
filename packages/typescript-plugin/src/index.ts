@@ -1,10 +1,10 @@
-import tsModule from 'typescript/lib/tsserverlibrary';
+import tsModule from 'typescript/lib/tsserverlibrary.js';
 import { createIsEcchiFile } from './utils.js';
 import { createEcchiServices } from '@ecchi-js/language';
 import { existsSync } from 'fs';
 import { generateDtsSnapshot } from './snapshot.js';
 import { dirname, resolve } from 'path';
-import { NodeFileSystem } from 'langium/lib/node';
+import { NodeFileSystem } from 'langium/node';
 
 type ModuleResolverFunction = (containingFile: string) => (moduleName: string, resolveModule: () => tsModule.ResolvedModuleWithFailedLookupLocations | undefined) => tsModule.ResolvedModuleFull | undefined;
 const isRelative = (fileName: string) => /^\.\.?($|[\\/])/.test(fileName);
@@ -161,4 +161,4 @@ function appendTypescript4xModuleResolution(languageServiceHost: Partial<tsModul
   }
 }
 
-export = init;
+export default init;

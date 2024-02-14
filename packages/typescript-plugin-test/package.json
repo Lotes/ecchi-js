@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@ecchi-js/core": "^0.0.1",
-    "@ecchi-js/typescript-plugin": "^0.0.1",
+    "@ecchi-js/typescript-plugin": "../typescript-plugin",
     "langium": "~2.1.0"
   },
   "devDependencies": {
