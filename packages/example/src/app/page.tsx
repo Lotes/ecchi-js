@@ -1,4 +1,7 @@
+import blog from "./Blog.ecchi";
 import Image from "next/image";
+
+const x = blog;
 
 export default function Home() {
   return (

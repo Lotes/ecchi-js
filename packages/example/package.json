@@ -15,6 +15,7 @@
     "next": "14.1.0"
   },
   "devDependencies": {
+    "@ecchi-js/typescript-plugin": "^0.0.1",
     "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
