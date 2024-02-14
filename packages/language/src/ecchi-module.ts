@@ -1,36 +1,59 @@
-import type { DefaultSharedModuleContext, LangiumServices, LangiumSharedServices, Module, PartialLangiumServices } from 'langium';
-import { createDefaultModule, createDefaultSharedModule, inject } from 'langium';
-import { EcchiGeneratedModule, EcchiGeneratedSharedModule } from './generated/module.js';
-import { EcchiValidator, registerValidationChecks } from './ecchi-validator.js';
-import { EcchiScopeProvider } from './ecchi-scope-provider.js';
+import type {
+  DefaultSharedModuleContext,
+  LangiumServices,
+  LangiumSharedServices,
+  Module,
+  PartialLangiumServices,
+} from "langium";
+import {
+  createDefaultModule,
+  createDefaultSharedModule,
+  inject,
+} from "langium";
+import {
+  EcchiGeneratedModule,
+  EcchiGeneratedSharedModule,
+} from "./generated/module.js";
+import { EcchiValidator, registerValidationChecks } from "./ecchi-validator.js";
+import { EcchiScopeProvider } from "./ecchi-scope-provider.js";
+import { EcchiDtsGenerator } from "./generators/ecchi-dts-generator.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
  */
 export type EcchiAddedServices = {
-    validation: {
-        EcchiValidator: EcchiValidator
-    }
-}
+  validation: {
+    EcchiValidator: EcchiValidator;
+  };
+  generator: {
+    EcchiGenerator: EcchiDtsGenerator;
+  };
+};
 
 /**
  * Union of Langium default services and your custom services - use this as constructor parameter
  * of custom service classes.
  */
-export type EcchiServices = LangiumServices & EcchiAddedServices
+export type EcchiServices = LangiumServices & EcchiAddedServices;
 
 /**
  * Dependency injection module that overrides Langium default services and contributes the
  * declared custom services. The Langium defaults can be partially specified to override only
  * selected services, while the custom services must be fully specified.
  */
-export const EcchiModule: Module<EcchiServices, PartialLangiumServices & EcchiAddedServices> = {
-    references: {
-        ScopeProvider: services => new EcchiScopeProvider(services)
-    },
-    validation: {
-        EcchiValidator: () => new EcchiValidator()
-    }
+export const EcchiModule: Module<
+  EcchiServices,
+  PartialLangiumServices & EcchiAddedServices
+> = {
+  references: {
+    ScopeProvider: (services) => new EcchiScopeProvider(services),
+  },
+  validation: {
+    EcchiValidator: () => new EcchiValidator(),
+  },
+  generator: {
+    EcchiGenerator: (services) => new EcchiDtsGenerator(services),
+  },
 };
 
 /**
@@ -49,19 +72,19 @@ export const EcchiModule: Module<EcchiServices, PartialLangiumServices & EcchiAd
  * @returns An object wrapping the shared services and the language-specific services
  */
 export function createEcchiServices(context: DefaultSharedModuleContext): {
-    shared: LangiumSharedServices,
-    Ecchi: EcchiServices
+  shared: LangiumSharedServices;
+  Ecchi: EcchiServices;
 } {
-    const shared = inject(
-        createDefaultSharedModule(context),
-        EcchiGeneratedSharedModule
-    );
-    const Ecchi = inject(
-        createDefaultModule({ shared }),
-        EcchiGeneratedModule,
-        EcchiModule
-    );
-    shared.ServiceRegistry.register(Ecchi);
-    registerValidationChecks(Ecchi);
-    return { shared, Ecchi };
+  const shared = inject(
+    createDefaultSharedModule(context),
+    EcchiGeneratedSharedModule
+  );
+  const Ecchi = inject(
+    createDefaultModule({ shared }),
+    EcchiGeneratedModule,
+    EcchiModule
+  );
+  shared.ServiceRegistry.register(Ecchi);
+  registerValidationChecks(Ecchi);
+  return { shared, Ecchi };
 }

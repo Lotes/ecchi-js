@@ -6,6 +6,7 @@
     "out",
     "src"
   ],
+  "types": "out/index.d.ts",
   "type": "module",
   "scripts": {
     "clean": "rm -rf out",

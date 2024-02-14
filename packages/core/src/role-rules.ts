@@ -24,8 +24,8 @@ export class RoleRules<
   TSubjectActions extends SubjectActionsBase<TTypes>
 > {
   constructor(
-    private readonly subjectActions: TSubjectActions,
-    private readonly roleRules: RoleRulesBase<TUser, TTypes, TSubjectActions>
+    _subjectActions: TSubjectActions,
+    _roleRules: RoleRulesBase<TUser, TTypes, TSubjectActions>
   ) {
   }
 }

@@ -38,12 +38,9 @@ export class UserPermissions<
     this.claims[subject].push([subject, () => true, this.subjectActions[subject][1].allowedMasks[action]] as any);
   }
   forbid(subject: keyof TSubjectActions, action: ActionsOf<TTypes, TSubjectActions, typeof subject>) {
+    this.disclaims[subject].push([subject, () => true, this.subjectActions[subject][1].forbiddenMasks[action]] as any);
   }
-  role(role: keyof TRoleRules) {
-  }
-  can(subjectType: keyof TSubjectActions) {
-    return (user: TUser, subject: TTypes[TSubjectActions[typeof subjectType][0]], action: ActionsOf<TTypes, TSubjectActions, typeof subjectType>) => {
-      return true;  
-    };
+  role(_role: keyof TRoleRules) {
+    
   }
 }
