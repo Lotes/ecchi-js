@@ -1,0 +1,15 @@
+// this file is required for VSCode to work properly
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out",
+    "plugins": [{
+      "name": "@ecchi-js/typescript-plugin"
+    }]
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ]
+}

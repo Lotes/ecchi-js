@@ -1,21 +1,22 @@
-import type tsModule from 'typescript/lib/tsserverlibrary.js';
+import tsModule from 'typescript/lib/tsserverlibrary';
 import { createIsEcchiFile } from './utils.js';
 import { createEcchiServices } from '@ecchi-js/language';
-import {existsSync} from 'fs';
+import { existsSync } from 'fs';
 import { generateDtsSnapshot } from './snapshot.js';
 import { dirname, resolve } from 'path';
-import { EmptyFileSystem } from 'langium';
+import { NodeFileSystem } from 'langium/lib/node';
 
 type ModuleResolverFunction = (containingFile: string) => (moduleName: string, resolveModule: () => tsModule.ResolvedModuleWithFailedLookupLocations | undefined) => tsModule.ResolvedModuleFull | undefined;
 const isRelative = (fileName: string) => /^\.\.?($|[\\/])/.test(fileName);
 
 const init: tsModule.server.PluginModuleFactory = ({ typescript: ts }) => {
-  const services = createEcchiServices(EmptyFileSystem);
+  const services = createEcchiServices(NodeFileSystem);
   const isEcchiFile = createIsEcchiFile(services.Ecchi);
 
   function create(
     info: tsModule.server.PluginCreateInfo,
   ): tsModule.LanguageService {
+    info.project.projectService.logger.msg(`Ecchi plugin initialized`, tsModule.server.Msg.Err);
     const languageServiceHost = {} as Partial<tsModule.LanguageServiceHost>;
     const languageService = createLanguageService(info, languageServiceHost, ts);
     const createModuleResolver = createModuleResolverFactory(isEcchiFile, ts);
@@ -79,9 +80,7 @@ function appendScriptKind(languageServiceHost: Partial<tsModule.LanguageServiceH
 function createLanguageService(info: tsModule.server.PluginCreateInfo, languageServiceHost: Partial<tsModule.LanguageServiceHost>, ts: typeof tsModule) {
   const languageServiceHostProxy = new Proxy(info.languageServiceHost, {
     get(target, key: keyof tsModule.LanguageServiceHost) {
-      return languageServiceHost[key]
-        ? languageServiceHost[key]
-        : target[key];
+      return languageServiceHost[key] ?? target[key];
     },
   });
 
@@ -162,4 +161,4 @@ function appendTypescript4xModuleResolution(languageServiceHost: Partial<tsModul
   }
 }
 
-export default init;
+export = init;

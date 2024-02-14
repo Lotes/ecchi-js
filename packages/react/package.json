@@ -6,6 +6,7 @@
     "out",
     "src"
   ],
+  "types": "out/",
   "type": "module",
   "scripts": {
     "clean": "rm -rf out",

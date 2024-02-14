@@ -1,0 +1,21 @@
+{
+  "name": "@ecchi-js/typescript-plugin-test",
+  "description": "Ecchi.js typescript plugin test",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "clean": "rm -rf out",
+    "show-config": "tsc -p tsconfig.json --showConfig",
+    "build": "tsc -b tsconfig.json --verbose"
+  },
+  "dependencies": {
+    "@ecchi-js/core": "^0.0.1",
+    "@ecchi-js/typescript-plugin": "^0.0.1",
+    "langium": "~2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "~20.11.17",
+    "typescript": "~5.1.6"
+  },
+  "displayName": "ecchi-js-typescript-plugin-test"
+}

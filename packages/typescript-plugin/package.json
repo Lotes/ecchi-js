@@ -2,12 +2,8 @@
   "name": "@ecchi-js/typescript-plugin",
   "description": "Ecchi.js typescript plugin",
   "version": "0.0.1",
-  "files": [
-    "out",
-    "src"
-  ],
-  "type": "module",
-  "main": "out/index.js",
+  "main": "out/",
+  "types": "out/index.d.ts",
   "scripts": {
     "clean": "rm -rf out",
     "build": "tsc -b tsconfig.src.json"
