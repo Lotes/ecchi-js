@@ -3,6 +3,11 @@
   "description": "Ecchi.js typescript plugin test",
   "version": "0.0.1",
   "private": true,
+  "exports": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "clean": "rm -rf out",
     "show-config": "tsc -p tsconfig.json --showConfig",

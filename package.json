@@ -1,8 +1,23 @@
 {
   "name": "@ecchi-js/workspace",
-  "description": "Ecchi.js workspace",
-  "private": true,
   "version": "0.0.1",
+  "private": true,
+  "description": "Ecchi.js workspace",
+  "keywords": [
+    "ecchi",
+    "abac",
+    "attribute-based access control"
+  ],
+  "author": "Markus Rudolph",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lotes/ecchi-js"
+  },
+  "bugs": {
+    "url": "https://github.com/Lotes/ecchi-js/issues"
+  },
+  "homepage": "https://github.com/Lotes/ecchi-js",
   "workspaces": [
     "packages/*"
   ],
@@ -11,7 +26,7 @@
     "build": "npm run build --workspaces --if-present",
     "test": "vitest",
     "lint:es": "eslint packages/*/src --ext ts",
-    "lint:npm": " npmPkgJsonLint -c .npmpackagejsonlintrc.json .",
+    "lint:npm": "npmPkgJsonLint -c .npmpackagejsonlintrc.json .",
     "langium:generate": "npm run langium:generate -w packages/language"
   },
   "devDependencies": {

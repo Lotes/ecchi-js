@@ -24,15 +24,11 @@
     "man-type": "error",
     "name-type": "error",
     "preferGlobal-type": "error",
-    "private-type": "error",
     "repository-type": "error",
     "scripts-type": "error",
     "version-type": "error",
     "valid-values-author": ["error", [
       "Markus Rudolph"
-    ]],
-    "valid-values-private": ["error", [
-      false
     ]],
     "name-format": "error",
     "version-format": "error"

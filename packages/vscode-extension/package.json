@@ -3,11 +3,9 @@
     "description": "Ecchi.js VSCode extension",
     "version": "0.0.1",
     "publisher": "lotes",
-    "files": [
-        "out",
-        "src"
-    ],
     "type": "module",
+    "exports": "./out/index.js",
+    "types": "./out/index.d.ts",
     "scripts": {
         "clean": "rm -rf out",
         "build": "tsc -b tsconfig.json && node esbuild.mjs",
@@ -28,7 +26,8 @@
     },
     "displayName": "ecchi-js-vscode-extension",
     "engines": {
-        "vscode": "^1.67.0"
+        "vscode": "^1.67.0",
+        "node": ">=16.0.0"
     },
     "contributes": {
         "languages": [
