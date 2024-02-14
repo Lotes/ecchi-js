@@ -16,7 +16,7 @@ From [Wikipedia](https://en.wikipedia.org/wiki/Ecchi):
 
 > Ecchi (エッチ, etchi) is a slang term in the Japanese language for playfully sexual actions. As an adjective, it is used with the meaning of "sexy", "dirty" or "naughty"; as a verb, ecchi suru (エッチする or as a noun, it is used to describe someone of lascivious behavior. It is softer than the Japanese word ero (エロ from Eros or "erotic"), and does not imply perversion in the way hentai does.
 
-In this context it is meant as a noun. Specifically it is a reference to the OVA and Manga [3x3 eyes](https://en.wikipedia.org/wiki/3%C3%973_Eyes), when the main character Yakumo accidently touches the private parts of Pai. That is the moment when she shouts „Ecchi!“ to him and slaps him in the face.
+In this context, it functions as a noun, specifically referring to a scene from the OVA and manga series [3x3 Eyes](https://en.wikipedia.org/wiki/3%C3%973_Eyes). In this scene, the main character Yakumo inadvertently touches Pai's intimate area, prompting her to shout "Ecchi!" at him and slap him in the face.
 
 Here is some illustration from the Manga:
 
