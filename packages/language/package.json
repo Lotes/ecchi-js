@@ -16,6 +16,7 @@
     "vscode:prepublish": "npm run build && npm run lint"
   },
   "dependencies": {
+    "@ecchi-js/core": "^0.0.1",
     "langium": "~2.1.0",
     "vscode-languageclient": "~9.0.1",
     "vscode-languageserver": "~9.0.1"
