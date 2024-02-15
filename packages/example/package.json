@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean": "rm -rf out",
-    "build": "webpack --mode=production"
+    "build": "webpack --mode=production --config webpack.config.js"
   },
   "dependencies": {
     "@ecchi-js/core": "^0.0.1"
