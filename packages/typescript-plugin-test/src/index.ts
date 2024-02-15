@@ -1,3 +1,5 @@
-//import blog from "./Blog.ecchi";
-const blog = "Blog.ecchi";
-console.log(JSON.stringify(blog, null, 2));
+import {  } from "./Blog.ecchi";
+
+const x: X;
+
+console.log(JSON.stringify(22, null, 2));

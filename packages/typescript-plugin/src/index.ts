@@ -1,22 +1,18 @@
 import tsModule from 'typescript/lib/tsserverlibrary.js';
-import { createIsEcchiFile } from './utils.js';
-import { createEcchiServices } from '@ecchi-js/language';
-import { existsSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import { generateDtsSnapshot } from './snapshot.js';
 import { dirname, resolve } from 'path';
-import { NodeFileSystem } from 'langium/node';
 
 type ModuleResolverFunction = (containingFile: string) => (moduleName: string, resolveModule: () => tsModule.ResolvedModuleWithFailedLookupLocations | undefined) => tsModule.ResolvedModuleFull | undefined;
 const isRelative = (fileName: string) => /^\.\.?($|[\\/])/.test(fileName);
+const isEcchiFile = (fileName: string) => /\.ecchi$/.test(fileName);
 
 const init: tsModule.server.PluginModuleFactory = ({ typescript: ts }) => {
-  const services = createEcchiServices(NodeFileSystem);
-  const isEcchiFile = createIsEcchiFile(services.Ecchi);
-
   function create(
     info: tsModule.server.PluginCreateInfo,
   ): tsModule.LanguageService {
-    info.project.projectService.logger.msg(`Ecchi plugin initialized`, tsModule.server.Msg.Err);
+    writeFileSync('C:/Users/markh/Desktop/ecchi-lang/ecchi.log', 'Ecchi plugin initialized\n', { flag: 'a' });
+    info.project.projectService.logger.info(`Ecchi plugin initialized`);
     const languageServiceHost = {} as Partial<tsModule.LanguageServiceHost>;
     const languageService = createLanguageService(info, languageServiceHost, ts);
     const createModuleResolver = createModuleResolverFactory(isEcchiFile, ts);
@@ -42,13 +38,14 @@ function createModuleResolverFactory(isEcchiFile: (fileName: string) => boolean,
   return (containingFile: string) => (moduleName: string, _resolveModule: () => tsModule.ResolvedModuleWithFailedLookupLocations | undefined): tsModule.ResolvedModuleFull | undefined => {
     if (isEcchiFile(moduleName)) {
       if (isRelative(moduleName)) {
+        const originalFileName = resolve(
+          dirname(containingFile),
+          moduleName
+        );
         return {
-          extension: ts.Extension.Dts,
+          extension: ts.Extension.Ts,
           isExternalLibraryImport: false,
-          resolvedFileName: resolve(
-            dirname(containingFile),
-            moduleName
-          ),
+          resolvedFileName: originalFileName
         };
       }
     }
@@ -161,4 +158,4 @@ function appendTypescript4xModuleResolution(languageServiceHost: Partial<tsModul
   }
 }
 
-export default init;
+export = init;

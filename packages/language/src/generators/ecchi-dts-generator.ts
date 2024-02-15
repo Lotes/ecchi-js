@@ -24,9 +24,8 @@ export class EcchiDtsGenerator {
     return dts;
   }
   private generateImports() {
-    return `import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "../src/index.js";
-declare const XXXX: number;
-export XXXX;
+    return `
+export declare const XXXX: number;
     `;
   }
 }
