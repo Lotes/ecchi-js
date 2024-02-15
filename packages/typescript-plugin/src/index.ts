@@ -11,8 +11,6 @@ const init: tsModule.server.PluginModuleFactory = ({ typescript: ts }) => {
   function create(
     info: tsModule.server.PluginCreateInfo,
   ): tsModule.LanguageService {
-    writeFileSync('C:/Users/markh/Desktop/ecchi-lang/ecchi.log', 'Ecchi plugin initialized\n', { flag: 'a' });
-    info.project.projectService.logger.info(`Ecchi plugin initialized`);
     const languageServiceHost = {} as Partial<tsModule.LanguageServiceHost>;
     const languageService = createLanguageService(info, languageServiceHost, ts);
     const createModuleResolver = createModuleResolverFactory(isEcchiFile, ts);

@@ -1,0 +1,28 @@
+{
+  "name": "@ecchi-js/example",
+  "description": "Ecchi.js example",
+  "version": "0.0.1",
+  "private": true,
+  "exports": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "clean": "rm -rf out",
+    "build": "webpack --mode=production"
+  },
+  "dependencies": {
+    "@ecchi-js/core": "^0.0.1"
+  },
+  "devDependencies": {
+    "@ecchi-js/typescript-plugin": "^0.0.1",
+    "@ecchi-js/webpack-loader": "^0.0.1",
+    "@types/node": "~20.11.17",
+    "ts-loader": "^9.5.1",
+    "typescript": "~5.1.6",
+    "webpack": "^5.90.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "displayName": "ecchi-js-example"
+}

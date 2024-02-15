@@ -1,0 +1,23 @@
+{
+  "name": "@ecchi-js/webpack-loader",
+  "description": "Ecchi.js webpack loader",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": "./out/src/index.js",
+  "types": "./out/src/index.d.ts",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "clean": "rm -rf out",
+    "build": "tsc -b tsconfig.json"
+  },
+  "dependencies": {
+    "@ecchi-js/language": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "~20.11.17",
+    "typescript": "~5.1.6"
+  },
+  "displayName": "ecchi-js-webpack-loader"
+}

@@ -3,8 +3,16 @@
   "description": "Ecchi.js language",
   "version": "0.0.1",
   "type": "module",
-  "exports": "./out/src/generators/main.js",
-  "types": "./out/src/index.d.ts",
+  "exports": {
+    "./main": {
+      "default": "./out/src/generators/main.js",
+      "types": "./out/src/generators/main.d.ts"
+    },
+    "./headless": {
+      "default": "./out/src/generators/headless.js",
+      "types": "./out/src/generators/headless.js"
+    }
+  },
   "engines": {
     "node": ">=16.0.0"
   },
