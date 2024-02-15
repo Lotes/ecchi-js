@@ -52,14 +52,11 @@ user of UserType {
   }
   role NormalUser {
     for Article {
-      allow create
-      allow read
-      allow archive when subject.author.id == user.id
-      allow publish when user.id == user.id 
-    }
-    for Comment {
-      allow answer
-      allow archive when subject.author.id == user.id
+      if(user.id == subject.author.id) {
+        allow archive
+      } else {
+        allow read
+      }
     }
   }
 }

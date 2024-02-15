@@ -2,11 +2,11 @@
     "projectName": "Ecchi",
     "languages": [{
         "id": "ecchi",
-        "grammar": "src/language/ecchi.langium",
+        "grammar": "src/ecchi.langium",
         "fileExtensions": [".ecchi"],
         "textMate": {
-            "out": "syntaxes/ecchi.tmLanguage.json"
+            "out": "../vscode-extension/syntaxes/ecchi.tmLanguage.json"
         }
     }],
-    "out": "src/language/generated"
+    "out": "src/generated"
 }

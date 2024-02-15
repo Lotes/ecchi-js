@@ -1,0 +1,58 @@
+{
+    "name": "@ecchi-js/vscode-extension",
+    "description": "Ecchi.js VSCode extension",
+    "version": "0.0.1",
+    "publisher": "lotes",
+    "type": "module",
+    "exports": "./out/index.js",
+    "types": "./out/index.d.ts",
+    "scripts": {
+        "clean": "rm -rf out",
+        "build": "tsc -b tsconfig.json && node esbuild.mjs",
+        "vscode:prepublish": "npm run build"
+    },
+    "dependencies": {
+        "vscode-languageclient": "~9.0.1",
+        "vscode-languageserver": "~9.0.1"
+    },
+    "devDependencies": {
+        "@types/node": "~20.11.17",
+        "@types/vscode": "~1.67.0",
+        "@typescript-eslint/eslint-plugin": "~6.4.1",
+        "@typescript-eslint/parser": "~6.4.1",
+        "esbuild": "^0.20.0",
+        "eslint": "~8.47.0",
+        "typescript": "~5.1.6"
+    },
+    "displayName": "ecchi-js-vscode-extension",
+    "engines": {
+        "vscode": "^1.67.0",
+        "node": ">=16.0.0"
+    },
+    "contributes": {
+        "languages": [
+            {
+                "id": "ecchi",
+                "aliases": [
+                    "Ecchi",
+                    "ecchi"
+                ],
+                "extensions": [
+                    ".ecchi"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "ecchi",
+                "scopeName": "source.ecchi",
+                "path": "syntaxes/ecchi.tmLanguage.json"
+            }
+        ]
+    },
+    "activationEvents": [
+        "onLanguage:ecchi"
+    ],
+    "main": "./out/extension/main.cjs"
+}

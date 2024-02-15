@@ -1,0 +1,25 @@
+{
+  "name": "@ecchi-js/react",
+  "description": "Ecchi.js React components",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": "./out/src/index.js",
+  "types": "./out/src/index.d.ts",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "clean": "rm -rf out",
+    "build": "tsc -b tsconfig.src.json"
+  },
+  "devDependencies": {
+    "@types/node": "~20.11.17",
+    "@types/react": "^18.2.55",
+    "typescript": "~5.1.6"
+  },
+  "displayName": "ecchi-js-react",
+  "dependencies": {
+    "@ecchi-js/core": "^0.0.1",
+    "react": "^18.2.0"
+  }
+}

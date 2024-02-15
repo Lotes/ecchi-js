@@ -1,4 +1,5 @@
-//@ts-check
+// @ts-check
+// @ts-ignore
 import * as esbuild from 'esbuild';
 
 const watch = process.argv.includes('--watch');
@@ -28,7 +29,7 @@ const plugins = [{
 
 const ctx = await esbuild.context({
     // Entry points for the vscode extension and the language server
-    entryPoints: ['src/extension/main.ts', 'src/language/main.ts'],
+    entryPoints: ['src/main.ts', '../language/src/main.ts'],
     outdir: 'out',
     bundle: true,
     target: "ES2017",

@@ -1,0 +1,27 @@
+{
+  "name": "@ecchi-js/typescript-plugin",
+  "description": "Ecchi.js typescript plugin",
+  "version": "0.0.1",
+  "files": [
+    "out"
+  ],
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "clean": "rm -rf out",
+    "build": "tsc -b tsconfig.src.json --verbose --force"
+  },
+  "dependencies": {
+    "@ecchi-js/core": "^0.0.1",
+    "@ecchi-js/language": "^0.0.1",
+    "langium": "~2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "~20.11.17",
+    "typescript": "~5.1.6"
+  },
+  "displayName": "ecchi-js-typescript-plugin"
+}

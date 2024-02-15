@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core/tsconfig.json" },
+    { "path": "./packages/language/tsconfig.src.json" },
+    { "path": "./packages/typescript-plugin/tsconfig.json" },
+    { "path": "./packages/react/tsconfig.json" },
+    { "path": "./packages/vscode-extension/tsconfig.json" },
+    { "path": "./packages/example/tsconfig.json" },
+  ]
+}
