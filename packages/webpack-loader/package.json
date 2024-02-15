@@ -2,7 +2,7 @@
   "name": "@ecchi-js/webpack-loader",
   "description": "Ecchi.js webpack loader",
   "version": "0.0.1",
-  "main": "src/cjs.js",
+  "main": "src/index.js",
   "files": [
     "src"
   ],
