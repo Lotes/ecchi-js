@@ -3,7 +3,7 @@
   "description": "Ecchi.js language",
   "version": "0.0.1",
   "type": "module",
-  "exports": "./out/src/index.js",
+  "exports": "./out/src/generators/main.js",
   "types": "./out/src/index.d.ts",
   "engines": {
     "node": ">=16.0.0"

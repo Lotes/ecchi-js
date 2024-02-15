@@ -1,8 +1,11 @@
+import { join } from 'path';
 import type tsModule from 'typescript/lib/tsserverlibrary.js';
 import { spawnSync } from 'node:child_process';
-import { ScriptLocation } from "@ecchi-js/language/src/generators/script-location.js";
 
 export function generateDtsSnapshot(ts: typeof tsModule, fileName: string): tsModule.IScriptSnapshot|undefined {
-  const output = spawnSync('node', [ScriptLocation, fileName], { encoding : 'utf8' });
+  const mainFile = require.resolve("@ecchi-js/language");
+  const args = [mainFile, fileName].map(s => s.replace(/\\/g, '/'));
+  const output = spawnSync('node', args, { encoding : 'utf8' });
+  //return ts.ScriptSnapshot.fromString(`export type XXXX = '${JSON.stringify(args)}';`);
   return ts.ScriptSnapshot.fromString(output.stdout);
 }

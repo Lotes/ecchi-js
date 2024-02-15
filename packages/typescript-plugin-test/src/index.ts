@@ -1,5 +1,3 @@
-import {  } from "./Blog.ecchi";
+import { XXXX } from "./Blog.ecchi";
 
-const x: X;
-
-console.log(JSON.stringify(22, null, 2));
+console.log(JSON.stringify(XXXX, null, 2));
