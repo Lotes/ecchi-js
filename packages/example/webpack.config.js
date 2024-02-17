@@ -14,10 +14,14 @@ module.exports = {
      ".mjs": [".mjs", ".mts"]
     }
   },
+  stats: {
+    children: true,
+    errorDetails: true
+  },
   module: {
     rules: [
       { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" },
-      { test: /\.ecchi$/i, loader: "@ecchi-js/webpack-loader" }
+      { test: /\.ecchi$/, use: [ "ts-loader", "@ecchi-js/webpack-loader"] }
     ]
   }
 };

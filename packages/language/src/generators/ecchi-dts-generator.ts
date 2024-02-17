@@ -25,7 +25,7 @@ export class EcchiDtsGenerator {
   }
   private generateImports() {
     return `
-export declare const XXXX: number;
+export const XXXX: number = 100;
     `;
   }
 }

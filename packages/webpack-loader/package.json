@@ -2,15 +2,17 @@
   "name": "@ecchi-js/webpack-loader",
   "description": "Ecchi.js webpack loader",
   "version": "0.0.1",
-  "main": "src/index.js",
+  "main": "out/index.js",
   "files": [
-    "src"
+    "out"
   ],
+  "types": "out/index.d.ts",
   "engines": {
     "node": ">=16.0.0"
   },
   "scripts": {
-    "clean": "rm -rf out"
+    "clean": "rm -rf out",
+    "build": "tsc -b tsconfig.json"
   },
   "dependencies": {
     "@ecchi-js/language": "^0.0.1"
