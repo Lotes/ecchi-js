@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean": "rm -rf out",
-    "build": "webpack --mode=production --config webpack.config.js"
+    "build": "webpack --mode=production"
   },
   "dependencies": {
     "@ecchi-js/core": "^0.0.1"
@@ -19,6 +19,7 @@
     "@ecchi-js/typescript-plugin": "^0.0.1",
     "@ecchi-js/webpack-loader": "^0.0.1",
     "@types/node": "~20.11.17",
+    "inspect-loader": "^2.0.0",
     "ts-loader": "^9.5.1",
     "typescript": "~5.1.6",
     "webpack": "^5.90.2",

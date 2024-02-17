@@ -4,7 +4,7 @@ module.exports = {
   entry: './src/index.ts',
   output: {
     path: path.resolve(__dirname, 'out'),
-    filename: 'bundle.js',
+    filename: 'index.js',
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".ecchi"],
@@ -14,14 +14,10 @@ module.exports = {
      ".mjs": [".mjs", ".mts"]
     }
   },
-  stats: {
-    children: true,
-    errorDetails: true
-  },
   module: {
     rules: [
       { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" },
-      { test: /\.ecchi$/, use: [ "ts-loader", "@ecchi-js/webpack-loader"] }
+      { test: /\.ecchi$/, loader: "@ecchi-js/webpack-loader"},
     ]
   }
 };

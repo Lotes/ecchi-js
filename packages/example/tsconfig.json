@@ -10,7 +10,10 @@
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true,
+    "declaration": true,
+    "sourceMap": true,
     "target": "es5",
+    "outDir": "out",
     "plugins": [{
       "name": "@ecchi-js/typescript-plugin"
     }]

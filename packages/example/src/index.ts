@@ -1,3 +1,11 @@
-import { XXXX } from "./Blog.ecchi";
+import { UserType } from "./Blog.ecchi";
 
-console.log(JSON.stringify(XXXX, null, 2));
+const user: UserType = {
+  id: 1,
+  name: 'John Doe',
+  email: '',
+  createdAt: '',
+  updatedAt: '',
+};
+
+console.log(JSON.stringify(user, null, 2));
