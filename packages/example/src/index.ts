@@ -1,3 +1,4 @@
+import "@ecchi-js/language/register";
 import { UserType } from "./Blog.ecchi";
 
 const user: UserType = {

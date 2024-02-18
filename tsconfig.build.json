@@ -7,6 +7,6 @@
     { "path": "./packages/react/tsconfig.json" },
     { "path": "./packages/vscode-extension/tsconfig.json" },
     { "path": "./packages/webpack-loader/tsconfig.json" },
-    { "path": "./packages/example/tsconfig.json" },
+    { "path": "./packages/example/tsconfig.json" }
   ]
 }

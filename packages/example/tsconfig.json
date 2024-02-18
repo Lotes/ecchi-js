@@ -16,8 +16,9 @@
     "outDir": "out",
     "plugins": [{
       "name": "@ecchi-js/typescript-plugin"
-    }]
+    }],
+    "typeRoots": ["src/*.d.ts"]
   },
-  "include": ["src"],
+  "include": ["src/**/*.ts"],
   "exclude": ["dist"]
 }

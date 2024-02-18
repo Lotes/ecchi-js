@@ -10,10 +10,11 @@
   },
   "scripts": {
     "clean": "rm -rf out",
-    "build": "webpack --mode=production"
+    "build": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "@ecchi-js/core": "^0.0.1"
+    "@ecchi-js/core": "^0.0.1",
+    "@ecchi-js/language": "^0.0.1"
   },
   "devDependencies": {
     "@ecchi-js/typescript-plugin": "^0.0.1",

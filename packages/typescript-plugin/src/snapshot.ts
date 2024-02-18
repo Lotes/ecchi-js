@@ -1,7 +1,7 @@
 import type tsModule from 'typescript/lib/tsserverlibrary.js';
 import { spawnSync } from 'node:child_process';
 
-export function generateDtsSnapshot(ts: typeof tsModule, fileName: string): tsModule.IScriptSnapshot|undefined {
+export function generateSnapshot(ts: typeof tsModule, fileName: string): tsModule.IScriptSnapshot|undefined {
   try {
     const mainFile = require.resolve("@ecchi-js/language/main");
     const args = [mainFile, fileName].map(s => s.replace(/\\/g, '/'));
