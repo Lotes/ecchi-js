@@ -1,9 +1,5 @@
 declare module "*.ecchi" {
-  declare interface UserType {
-    id: number;
-    name: string;
-    email: string;
-    createdAt: string;
-    updatedAt: string;
-  }
+  import type { Reflection, TypeBase } from "@ecchi-js/core";
+  declare type $Types = Record<string, TypeBase>;
+  declare const $Reflection = Reflection<$Types>;
 }

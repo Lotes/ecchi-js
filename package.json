@@ -19,7 +19,13 @@
   },
   "homepage": "https://github.com/Lotes/ecchi-js",
   "workspaces": [
-    "packages/*"
+    "packages/core",
+    "packages/language",
+    "packages/typescript-plugin",
+    "packages/react",
+    "packages/example",
+    "packages/vscode-extension",
+    "packages/webpack-loader"
   ],
   "scripts": {
     "clean": "npm run clean --workspaces --if-present",

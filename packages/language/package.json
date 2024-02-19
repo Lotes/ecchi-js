@@ -7,9 +7,7 @@
     "./main": {
       "default": "./out/src/generators/main.js",
       "types": "./out/src/generators/main.d.ts"
-    },
-    "./register": "./src/register.mjs",
-    "./loader": "./src/loader.mjs"
+    }
   },
   "files": [
     "out",
