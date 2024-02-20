@@ -7,7 +7,7 @@ module.exports = {
     filename: 'index.js',
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".ecchi"],
+    extensions: [".ts", ".tsx", ".js"],
     extensionAlias: {
      ".js": [".js", ".ts"],
      ".cjs": [".cjs", ".cts"],
@@ -16,8 +16,8 @@ module.exports = {
   },
   module: {
     rules: [
+      { test: /\.ecchi$/, use: ["@ecchi-js/webpack-loader", "ts-loader"]  },
       { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" },
-      { test: /\.ecchi$/, loader: "@ecchi-js/webpack-loader"},
     ]
   }
 };
