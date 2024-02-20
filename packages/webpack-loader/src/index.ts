@@ -9,14 +9,10 @@ function ecchiLoader(
   _inputSourceMap?: Record<string, any>
 ): string {
   const fileName = this.resourcePath;
-  try {
-    const mainFile = require.resolve("@ecchi-js/language/main");
-    const args = [mainFile, fileName].map(s => s.replace(/\\/g, '/'));
-    const output = spawnSync(process.execPath, args, { encoding : 'utf8' });
-    return output.stdout;
-  } catch (e) {
-    return `export const TranspilingError = '${JSON.stringify(e)}';`;
-  }  
+  const mainFile = require.resolve("@ecchi-js/cli");
+  const args = [mainFile, fileName].map(s => s.replace(/\\/g, '/'));
+  const output = spawnSync(process.execPath, args, { encoding : 'utf8' });
+  return output.stdout;
 }
 
 export default ecchiLoader;

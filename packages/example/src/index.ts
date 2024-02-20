@@ -1,6 +1,6 @@
-import { $Types, $Reflection } from "./Blog.ecchi";
+import { $Types, $Reflection, $SubjectActions, $UserType } from "./Blog.ecchi";
 
-const user: $Types.UserType = {
+const user: $UserType = {
   $type: "UserType",
   id: 1,
   name: 'John Doe',
@@ -9,6 +9,6 @@ const user: $Types.UserType = {
   updatedAt: '',
 };
 
-$Reflection.isSubTypeOf(user);
+$Reflection.isSubTypeOf(user, user);
 
 console.log(JSON.stringify(user, null, 2));

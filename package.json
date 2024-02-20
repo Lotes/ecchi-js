@@ -21,6 +21,7 @@
   "workspaces": [
     "packages/core",
     "packages/language",
+    "packages/cli",
     "packages/typescript-plugin",
     "packages/react",
     "packages/example",
