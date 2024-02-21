@@ -16,7 +16,7 @@ module.exports = {
   },
   module: {
     rules: [
-      { test: /\.ecchi$/, use: ["ts-loader", "@ecchi-js/webpack-loader"]  },
+      { test: /\.ecchi$/, use: ["ts-loader", "@ecchi-js/webpack-loader", "raw-loader"]  },
       { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" },
     ]
   }

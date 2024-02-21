@@ -21,6 +21,7 @@
     "@ecchi-js/webpack-loader": "^0.0.1",
     "@types/node": "~20.11.17",
     "inspect-loader": "^2.0.0",
+    "raw-loader": "^4.0.2",
     "ts-loader": "^9.5.1",
     "typescript": "~5.1.6",
     "webpack": "^5.90.2",
