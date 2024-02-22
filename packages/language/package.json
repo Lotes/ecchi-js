@@ -3,14 +3,22 @@
   "description": "Ecchi.js language",
   "version": "0.0.1",
   "type": "module",
-  "exports": "./out/src/generators/main.js",
-  "types": "./out/src/index.d.ts",
+  "exports": {
+    ".": {
+      "default": "./out/src/generators/main.js",
+      "types": "./out/src/generators/main.d.ts"
+    }
+  },
+  "files": [
+    "out",
+    "src"
+  ],
   "engines": {
     "node": ">=16.0.0"
   },
   "scripts": {
     "clean": "rm -rf out",
-    "build": "tsc -b tsconfig.src.json",
+    "build": "tsc -b tsconfig.src.json --force",
     "lint": "eslint src --ext ts",
     "langium:generate": "langium generate",
     "langium:watch": "langium generate --watch",

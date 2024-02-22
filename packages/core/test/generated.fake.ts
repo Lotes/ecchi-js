@@ -20,7 +20,7 @@ export type $Types = {
 
 export const $Reflection = new Reflection<$Types>({
   ArticleType: [1, 2],
-  UserType: [3, 4]  
+  UserType: [3, 4]
 });
 
 export const $SubjectActions = {

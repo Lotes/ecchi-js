@@ -54,5 +54,5 @@
     "activationEvents": [
         "onLanguage:ecchi"
     ],
-    "main": "./out/extension/main.cjs"
+    "main": "./out/vscode-extension/src/main.cjs"
 }

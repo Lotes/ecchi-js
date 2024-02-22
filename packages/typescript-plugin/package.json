@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@ecchi-js/core": "^0.0.1",
-    "@ecchi-js/language": "^0.0.1",
+    "@ecchi-js/cli": "^0.0.1",
     "langium": "~2.1.0"
   },
   "devDependencies": {

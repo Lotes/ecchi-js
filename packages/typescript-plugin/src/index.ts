@@ -1,6 +1,6 @@
 import tsModule from 'typescript/lib/tsserverlibrary.js';
 import { existsSync, writeFileSync } from 'fs';
-import { generateDtsSnapshot } from './snapshot.js';
+import { generateSnapshot } from './snapshot.js';
 import { dirname, resolve } from 'path';
 
 type ModuleResolverFunction = (containingFile: string) => (moduleName: string, resolveModule: () => tsModule.ResolvedModuleWithFailedLookupLocations | undefined) => tsModule.ResolvedModuleFull | undefined;
@@ -11,8 +11,6 @@ const init: tsModule.server.PluginModuleFactory = ({ typescript: ts }) => {
   function create(
     info: tsModule.server.PluginCreateInfo,
   ): tsModule.LanguageService {
-    writeFileSync('C:/Users/markh/Desktop/ecchi-lang/ecchi.log', 'Ecchi plugin initialized\n', { flag: 'a' });
-    info.project.projectService.logger.info(`Ecchi plugin initialized`);
     const languageServiceHost = {} as Partial<tsModule.LanguageServiceHost>;
     const languageService = createLanguageService(info, languageServiceHost, ts);
     const createModuleResolver = createModuleResolverFactory(isEcchiFile, ts);
@@ -56,7 +54,7 @@ function createModuleResolverFactory(isEcchiFile: (fileName: string) => boolean,
 function appendScriptSnapshot(languageServiceHost: Partial<tsModule.LanguageServiceHost>, isEcchiFile: (fileName: string) => boolean, ts: typeof tsModule, info: tsModule.server.PluginCreateInfo) {
   languageServiceHost.getScriptSnapshot = (fileName) => {
     if (isEcchiFile(fileName) && existsSync(fileName)) {
-      return generateDtsSnapshot(ts, fileName);
+      return generateSnapshot(ts, fileName);
     }
     return info.languageServiceHost.getScriptSnapshot(fileName);
   };

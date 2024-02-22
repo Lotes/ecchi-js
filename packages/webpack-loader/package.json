@@ -1,0 +1,29 @@
+{
+  "name": "@ecchi-js/webpack-loader",
+  "version": "0.0.1",
+  "description": "Ecchi.js webpack loader",
+  "license": "MIT",
+  "author": "Markus  Rudolph",
+  "main": "out/index.js",
+  "engines": {
+    "node": ">= 10.13.0"
+  },
+  "scripts": {
+    "clean": "rm -rf out",
+    "build": "tsc -b tsconfig.json"
+  },
+  "files": [
+    "out"
+  ],
+  "peerDependencies": {
+    "webpack": "^5.90.2"
+  },
+  "dependencies": {
+    "@ecchi-js/cli": "^0.0.1",
+    "@types/webpack": "^5.28.5"
+  },
+  "devDependencies": {
+    "memfs": "^4.7.7",
+    "vitest": "^1.3.1"
+  }
+}

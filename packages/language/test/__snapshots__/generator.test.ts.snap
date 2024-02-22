@@ -1,0 +1,81 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ecchi-generator 1`] = `
+"import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";
+
+interface UserType {
+  $type: "UserType";
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+interface ArticleType {
+  $type: "ArticleType";
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: UserType;
+  published: boolean;
+}
+interface CommentType {
+  $type: "CommentType";
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: UserType;
+  article: ArticleType;
+  published: boolean;
+}
+interface A {
+  $type: "A"|"B";
+  
+}
+interface B extends A {
+  $type: "B";
+  
+}
+
+export type $Types = {
+  UserType: UserType,
+  ArticleType: ArticleType,
+  CommentType: CommentType,
+  A: A,
+  B: B,
+}
+
+export const $Reflection = new Reflection<$Types>({
+  UserType: [0,  1],
+  ArticleType: [2,  3],
+  CommentType: [4,  5],
+  A: [6,  9],
+  B: [7,  8],
+});
+
+export type $UserType = UserType;
+
+export const $SubjectActions = {
+  Article: ["ArticleType", new SubjectActions<'create'|'read'|'edit'|'archive'|'publish'|'delete'>({
+    create: [[0, 1],  0],
+    read: [[2, 11],  1],
+    edit: [[3, 10],  2],
+    archive: [[4, 7],  3],
+    publish: [[8, 9],  4],
+    delete: [[5, 6],  5]
+  })]
+  Comment: ["CommentType", new SubjectActions<'read'|'answer'|'edit'|'archive'|'delete'|'publish'>({
+    read: [[0, 11],  0],
+    answer: [[1, 2],  1],
+    edit: [[3, 10],  2],
+    archive: [[4, 7],  3],
+    delete: [[5, 6],  4],
+    publish: [[8, 9],  5]
+  })]
+} satisfies SubjectActionsBase<$Types>;    
+
+"
+`;

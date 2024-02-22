@@ -5,18 +5,20 @@
     "lib": ["esnext", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "noEmit": true,
-    "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true,
+    "declaration": true,
+    "sourceMap": true,
     "target": "es5",
+    "outDir": "out",
     "plugins": [{
       "name": "@ecchi-js/typescript-plugin"
-    }]
+    }],
+    "typeRoots": ["src/*.d.ts"]
   },
-  "include": ["src"],
+  "include": ["src/**/*.ts"],
   "exclude": ["dist"]
 }

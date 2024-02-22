@@ -25,6 +25,9 @@ interface CommentType {
   published: boolean;
 }
 
+interface A {}
+interface B extends A {}
+
 user of UserType {
   subject Article of ArticleType {
     action create
@@ -34,7 +37,7 @@ user of UserType {
     action publish extends edit
     action delete extends archive
   }
-  subject Comment of ArticleType {
+  subject Comment of CommentType {
     action read
     action answer extends read
     action edit extends read

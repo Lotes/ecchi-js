@@ -16,7 +16,7 @@ import {
 } from "./generated/module.js";
 import { EcchiValidator, registerValidationChecks } from "./ecchi-validator.js";
 import { EcchiScopeProvider } from "./ecchi-scope-provider.js";
-import { EcchiDtsGenerator } from "./generators/ecchi-dts-generator.js";
+import { EcchiGenerator } from "./generators/ecchi-generator.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -26,7 +26,7 @@ export type EcchiAddedServices = {
     EcchiValidator: EcchiValidator;
   };
   generator: {
-    EcchiGenerator: EcchiDtsGenerator;
+    EcchiGenerator: EcchiGenerator;
   };
 };
 
@@ -52,7 +52,7 @@ export const EcchiModule: Module<
     EcchiValidator: () => new EcchiValidator(),
   },
   generator: {
-    EcchiGenerator: (services) => new EcchiDtsGenerator(services),
+    EcchiGenerator: (services) => new EcchiGenerator(services),
   },
 };
 
