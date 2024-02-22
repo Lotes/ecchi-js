@@ -8,7 +8,11 @@ TODO
 
 ## Contribution notes
 
-TODO
+```ts
+npm install
+npm run build
+npm test
+```
 
 ## Why is this language called „Ecchi!“?
 
