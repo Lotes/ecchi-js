@@ -6,7 +6,7 @@ A domain-specific language for attribute-based access control.
 
 In short:
 
-> Define a hierarchy of access rules and check if a user has permissions to act to a resource.
+> Define a hierarchy of access rules and check if a user has permissions to act on a resource.
 
 Long version:
 
@@ -14,6 +14,15 @@ Long version:
 2. ???
 3. profit
 4. TODO of course...
+
+## Concepts
+
+* users are persons or identities - something whose access to subjects needs to be clontrolled
+* subjects are resources like business objects, API endpoints etc.
+* actions on subjects are the possible manipulations you can trigger as a user, when you have the right roles or permissions
+* roles can be seen as groups of users, each user can have multiple roles. A role cannhave certain permissions on actions for a certain subject
+* permissions say whether you can allow or deny something
+* access rules define access between users and subject actions
 
 ## Contribution notes
 
