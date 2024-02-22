@@ -4,11 +4,39 @@ A domain-specific language for attribute-based access control.
 
 ## Example usage
 
-TODO
+In short:
+
+> Define a hierarchy of access rules and check if a user has permissions to act to a resource.
+
+Long version:
+
+1. define a hierarchy of access rules with its own domain-specific language
+2. ???
+3. profit
+4. TODO of course...
 
 ## Contribution notes
 
-TODO
+For install, build and test simply use:
+
+```bash
+npm install
+npm run build
+npm test
+```
+
+### Packages
+
+![Dependencies](docs/dependencies.svg)
+
+* `core` - the domain around access control
+* `language` - the syntax and semantics of the access control language
+* `cli` - a command-line interface for the transpiler
+* `react` - visual components & hooks for React
+* `typescript-plugin` - plugin for better TypeScript support
+* `vscode-extension` - extension with language editor support
+* `webpack-loader` - loader for Webpack
+* `example` - example usage of the language
 
 ## Why is this language called „Ecchi!“?
 

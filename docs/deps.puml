@@ -1,0 +1,24 @@
+skinparam ranksep 20
+skinparam dpi 125
+
+file cli
+file core
+file example
+file language
+file react
+file "typescript-plugin" as typescript
+file "vscode-extension" as vscode
+file "webpack-loader" as webpack
+circle VSCode as ide
+
+language --> cli : "used by"
+core --> language : "used by"
+cli --> typescript : "used by"
+cli --> vscode : "used by"
+cli --> webpack : "used by"
+core --> react : "used by"
+react --> example : "used by"
+webpack --> example : "used by"
+typescript --> example : "used by"
+vscode --> ide : "used by"
+ide --> example : writes
