@@ -1,4 +1,4 @@
-import { $UserType, TranspilingError } from "./Blog.ecchi";
+import { $UserType } from "./Blog.ecchi";
 
 const user: $UserType = {
   $type: "UserType",

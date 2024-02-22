@@ -3,8 +3,8 @@
   "description": "Ecchi.js CLI",
   "version": "0.0.1",
   "type": "module",
-  "exports": "./out/src/index.js",
-  "types": "./out/src/index.d.ts",
+  "exports": "./out/src/main.js",
+  "types": "./out/src/main.d.ts",
   "engines": {
     "node": ">=16.0.0"
   },

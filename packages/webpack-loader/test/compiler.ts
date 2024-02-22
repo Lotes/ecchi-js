@@ -5,7 +5,7 @@ import { createFsFromVolume, Volume } from 'memfs';
 export default (fixture, options = {}) => {
   const compiler = webpack({
     context: __dirname,
-    entry: `./${fixture}`,
+    entry: fixture,
     output: {
       path: path.resolve(__dirname),
       filename: 'bundle.js',
