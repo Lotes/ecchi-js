@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`execute 1`] = `
+"import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";
+
+interface UserType {
+  $type: "UserType";
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type $Types = {
+  UserType: UserType,
+}
+
+export const $Reflection = new Reflection<$Types>({
+  UserType: [0,  1],
+});
+
+export type $UserType = UserType;
+
+export const $SubjectActions = {
+  
+} satisfies SubjectActionsBase<$Types>;    
+
+
+"
+`;

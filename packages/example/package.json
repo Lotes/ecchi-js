@@ -11,7 +11,7 @@
   "scripts": {
     "clean": "rm -rf out",
     "build": "webpack --mode=production",
-    "profile": "webpack --profile --json > stats.json"
+    "profile": "webpack --profile --mode=production --json > stats.json"
   },
   "dependencies": {
     "@ecchi-js/core": "^0.0.1"

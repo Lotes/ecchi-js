@@ -1,1 +1,247 @@
-{"hash":"4663d6f7bfc5f3338717","version":"5.90.3","time":1122,"builtAt":1708545638534,"publicPath":"auto","outputPath":"C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\out","assetsByChunkName":{"main":["index.js"]},"assets":[{"type":"asset","name":"index.js","size":134,"emitted":false,"comparedForEmit":true,"cached":false,"info":{"javascriptModule":false,"minimized":true,"size":134},"chunkNames":["main"],"chunkIdHints":[],"auxiliaryChunkNames":[],"auxiliaryChunkIdHints":[],"related":{},"chunks":[792],"auxiliaryChunks":[],"isOverSizeLimit":false},{"type":"asset","name":"index.d.ts","size":11,"emitted":false,"comparedForEmit":true,"cached":false,"info":{"size":11},"chunkNames":[],"chunkIdHints":[],"auxiliaryChunkNames":[],"auxiliaryChunkIdHints":[],"related":{},"chunks":[],"auxiliaryChunks":[],"isOverSizeLimit":false}],"chunks":[{"rendered":true,"initial":true,"entry":true,"recorded":false,"size":246,"sizes":{"javascript":246},"names":["main"],"idHints":[],"runtime":["main"],"files":["index.js"],"auxiliaryFiles":[],"hash":"0cfcec4575627fc6635d","childrenByOrder":{},"id":792,"siblings":[],"parents":[],"children":[],"modules":[{"type":"module","moduleType":"javascript/auto","layer":null,"size":246,"sizes":{"javascript":246},"built":true,"codeGenerated":true,"buildTimeExecuted":false,"cached":false,"identifier":"C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\ts-loader\\index.js!C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts","name":"./src/index.ts","nameForCondition":"C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts","index":0,"preOrderIndex":0,"index2":0,"postOrderIndex":0,"cacheable":true,"optional":false,"orphan":false,"dependent":false,"issuer":null,"issuerName":null,"issuerPath":null,"failed":false,"errors":0,"warnings":0,"profile":{"total":922,"resolving":34,"restoring":0,"building":888,"integration":0,"storing":0,"additionalResolving":0,"additionalIntegration":0,"factory":34,"dependencies":0},"id":783,"issuerId":null,"chunks":[792],"assets":[],"reasons":[{"moduleIdentifier":null,"module":null,"moduleName":null,"resolvedModuleIdentifier":null,"resolvedModule":null,"type":"entry","active":true,"explanation":"","userRequest":"./src/index.ts","loc":"main","moduleId":null,"resolvedModuleId":null}],"usedExports":[],"providedExports":["__esModule"],"optimizationBailout":["Statement (ExpressionStatement) with side effects in source code at 2:0-62","ModuleConcatenation bailout: Module is not an ECMAScript module"],"depth":0}],"origins":[{"module":"","moduleIdentifier":"","moduleName":"","loc":"main","request":"./src/index.ts"}]}],"modules":[{"type":"module","moduleType":"javascript/auto","layer":null,"size":246,"sizes":{"javascript":246},"built":true,"codeGenerated":true,"buildTimeExecuted":false,"cached":false,"identifier":"C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\ts-loader\\index.js!C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts","name":"./src/index.ts","nameForCondition":"C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts","index":0,"preOrderIndex":0,"index2":0,"postOrderIndex":0,"cacheable":true,"optional":false,"orphan":false,"issuer":null,"issuerName":null,"issuerPath":null,"failed":false,"errors":0,"warnings":0,"profile":{"total":922,"resolving":34,"restoring":0,"building":888,"integration":0,"storing":0,"additionalResolving":0,"additionalIntegration":0,"factory":34,"dependencies":0},"id":783,"issuerId":null,"chunks":[792],"assets":[],"reasons":[{"moduleIdentifier":null,"module":null,"moduleName":null,"resolvedModuleIdentifier":null,"resolvedModule":null,"type":"entry","active":true,"explanation":"","userRequest":"./src/index.ts","loc":"main","moduleId":null,"resolvedModuleId":null}],"usedExports":[],"providedExports":["__esModule"],"optimizationBailout":["Statement (ExpressionStatement) with side effects in source code at 2:0-62","ModuleConcatenation bailout: Module is not an ECMAScript module"],"depth":0}],"entrypoints":{"main":{"name":"main","chunks":[792],"assets":[{"name":"index.js","size":134}],"filteredAssets":0,"assetsSize":134,"auxiliaryAssets":[],"filteredAuxiliaryAssets":0,"auxiliaryAssetsSize":0,"children":{},"childAssets":{},"isOverSizeLimit":false}},"namedChunkGroups":{"main":{"name":"main","chunks":[792],"assets":[{"name":"index.js","size":134}],"filteredAssets":0,"assetsSize":134,"auxiliaryAssets":[],"filteredAuxiliaryAssets":0,"auxiliaryAssetsSize":0,"children":{},"childAssets":{},"isOverSizeLimit":false}},"errors":[],"errorsCount":0,"warnings":[{"message":"configuration\nThe 'mode' option has not been set, webpack will fallback to 'production' for this value.\nSet 'mode' option to 'development' or 'production' to enable defaults for each environment.\nYou can also set it to 'none' to disable any default behavior. Learn more: https://webpack.js.org/configuration/mode/","stack":"NoModeWarning: configuration\nThe 'mode' option has not been set, webpack will fallback to 'production' for this value.\nSet 'mode' option to 'development' or 'production' to enable defaults for each environment.\nYou can also set it to 'none' to disable any default behavior. Learn more: https://webpack.js.org/configuration/mode/\n    at C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\webpack\\lib\\WarnNoModeSetPlugin.js:20:30\n    at Hook.eval [as call] (eval at create (C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\tapable\\lib\\HookCodeFactory.js:19:10), <anonymous>:21:1)\n    at Hook.CALL_DELEGATE [as _call] (C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\tapable\\lib\\Hook.js:14:14)\n    at Compiler.newCompilation (C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\webpack\\lib\\Compiler.js:1138:30)\n    at C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\webpack\\lib\\Compiler.js:1183:29\n    at Hook.eval [as callAsync] (eval at create (C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\tapable\\lib\\HookCodeFactory.js:33:10), <anonymous>:6:1)\n    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\tapable\\lib\\Hook.js:18:14)\n    at Compiler.compile (C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\webpack\\lib\\Compiler.js:1178:28)\n    at C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\webpack\\lib\\Compiler.js:537:12\n    at Compiler.readRecords (C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\webpack\\lib\\Compiler.js:1002:5)"}],"warningsCount":1,"children":[]}
+{
+  "hash": "fcf0a941827c43c63203",
+  "version": "5.90.3",
+  "time": 1257,
+  "builtAt": 1708586308855,
+  "publicPath": "auto",
+  "outputPath": "C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\out",
+  "assetsByChunkName": { "main": ["index.js"] },
+  "assets": [
+    {
+      "type": "asset",
+      "name": "index.js",
+      "size": 134,
+      "emitted": false,
+      "comparedForEmit": true,
+      "cached": false,
+      "info": { "javascriptModule": false, "minimized": true, "size": 134 },
+      "chunkNames": ["main"],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "related": {},
+      "chunks": [792],
+      "auxiliaryChunks": [],
+      "isOverSizeLimit": false
+    },
+    {
+      "type": "asset",
+      "name": "index.d.ts",
+      "size": 11,
+      "emitted": false,
+      "comparedForEmit": true,
+      "cached": false,
+      "info": { "size": 11 },
+      "chunkNames": [],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "related": {},
+      "chunks": [],
+      "auxiliaryChunks": [],
+      "isOverSizeLimit": false
+    }
+  ],
+  "chunks": [
+    {
+      "rendered": true,
+      "initial": true,
+      "entry": true,
+      "recorded": false,
+      "size": 246,
+      "sizes": { "javascript": 246 },
+      "names": ["main"],
+      "idHints": [],
+      "runtime": ["main"],
+      "files": ["index.js"],
+      "auxiliaryFiles": [],
+      "hash": "0cfcec4575627fc6635d",
+      "childrenByOrder": {},
+      "id": 792,
+      "siblings": [],
+      "parents": [],
+      "children": [],
+      "modules": [
+        {
+          "type": "module",
+          "moduleType": "javascript/auto",
+          "layer": null,
+          "size": 246,
+          "sizes": { "javascript": 246 },
+          "built": true,
+          "codeGenerated": true,
+          "buildTimeExecuted": false,
+          "cached": false,
+          "identifier": "C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\ts-loader\\index.js!C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts",
+          "name": "./src/index.ts",
+          "nameForCondition": "C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts",
+          "index": 0,
+          "preOrderIndex": 0,
+          "index2": 0,
+          "postOrderIndex": 0,
+          "cacheable": true,
+          "optional": false,
+          "orphan": false,
+          "dependent": false,
+          "issuer": null,
+          "issuerName": null,
+          "issuerPath": null,
+          "failed": false,
+          "errors": 0,
+          "warnings": 0,
+          "profile": {
+            "total": 1025,
+            "resolving": 44,
+            "restoring": 0,
+            "building": 981,
+            "integration": 0,
+            "storing": 0,
+            "additionalResolving": 0,
+            "additionalIntegration": 0,
+            "factory": 44,
+            "dependencies": 0
+          },
+          "id": 783,
+          "issuerId": null,
+          "chunks": [792],
+          "assets": [],
+          "reasons": [
+            {
+              "moduleIdentifier": null,
+              "module": null,
+              "moduleName": null,
+              "resolvedModuleIdentifier": null,
+              "resolvedModule": null,
+              "type": "entry",
+              "active": true,
+              "explanation": "",
+              "userRequest": "./src/index.ts",
+              "loc": "main",
+              "moduleId": null,
+              "resolvedModuleId": null
+            }
+          ],
+          "usedExports": [],
+          "providedExports": ["__esModule"],
+          "optimizationBailout": [
+            "Statement (ExpressionStatement) with side effects in source code at 2:0-62",
+            "ModuleConcatenation bailout: Module is not an ECMAScript module"
+          ],
+          "depth": 0
+        }
+      ],
+      "origins": [
+        {
+          "module": "",
+          "moduleIdentifier": "",
+          "moduleName": "",
+          "loc": "main",
+          "request": "./src/index.ts"
+        }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "type": "module",
+      "moduleType": "javascript/auto",
+      "layer": null,
+      "size": 246,
+      "sizes": { "javascript": 246 },
+      "built": true,
+      "codeGenerated": true,
+      "buildTimeExecuted": false,
+      "cached": false,
+      "identifier": "C:\\Users\\markh\\Desktop\\ecchi-lang\\node_modules\\ts-loader\\index.js!C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts",
+      "name": "./src/index.ts",
+      "nameForCondition": "C:\\Users\\markh\\Desktop\\ecchi-lang\\packages\\example\\src\\index.ts",
+      "index": 0,
+      "preOrderIndex": 0,
+      "index2": 0,
+      "postOrderIndex": 0,
+      "cacheable": true,
+      "optional": false,
+      "orphan": false,
+      "issuer": null,
+      "issuerName": null,
+      "issuerPath": null,
+      "failed": false,
+      "errors": 0,
+      "warnings": 0,
+      "profile": {
+        "total": 1025,
+        "resolving": 44,
+        "restoring": 0,
+        "building": 981,
+        "integration": 0,
+        "storing": 0,
+        "additionalResolving": 0,
+        "additionalIntegration": 0,
+        "factory": 44,
+        "dependencies": 0
+      },
+      "id": 783,
+      "issuerId": null,
+      "chunks": [792],
+      "assets": [],
+      "reasons": [
+        {
+          "moduleIdentifier": null,
+          "module": null,
+          "moduleName": null,
+          "resolvedModuleIdentifier": null,
+          "resolvedModule": null,
+          "type": "entry",
+          "active": true,
+          "explanation": "",
+          "userRequest": "./src/index.ts",
+          "loc": "main",
+          "moduleId": null,
+          "resolvedModuleId": null
+        }
+      ],
+      "usedExports": [],
+      "providedExports": ["__esModule"],
+      "optimizationBailout": [
+        "Statement (ExpressionStatement) with side effects in source code at 2:0-62",
+        "ModuleConcatenation bailout: Module is not an ECMAScript module"
+      ],
+      "depth": 0
+    }
+  ],
+  "entrypoints": {
+    "main": {
+      "name": "main",
+      "chunks": [792],
+      "assets": [{ "name": "index.js", "size": 134 }],
+      "filteredAssets": 0,
+      "assetsSize": 134,
+      "auxiliaryAssets": [],
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {},
+      "isOverSizeLimit": false
+    }
+  },
+  "namedChunkGroups": {
+    "main": {
+      "name": "main",
+      "chunks": [792],
+      "assets": [{ "name": "index.js", "size": 134 }],
+      "filteredAssets": 0,
+      "assetsSize": 134,
+      "auxiliaryAssets": [],
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {},
+      "isOverSizeLimit": false
+    }
+  },
+  "errors": [],
+  "errorsCount": 0,
+  "warnings": [],
+  "warningsCount": 0,
+  "children": []
+}

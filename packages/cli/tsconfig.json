@@ -5,6 +5,7 @@
     "rootDir": "."
   },
   "include": [
+    "package.json",
     "src/**/*",
     "test/**/*"
   ]

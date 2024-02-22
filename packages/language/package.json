@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "exports": {
-    "./main": {
+    ".": {
       "default": "./out/src/generators/main.js",
       "types": "./out/src/generators/main.d.ts"
     }

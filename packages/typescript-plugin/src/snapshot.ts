@@ -5,5 +5,5 @@ export function generateSnapshot(ts: typeof tsModule, fileName: string): tsModul
   const mainFile = require.resolve("@ecchi-js/cli");
   const args = [mainFile, fileName].map(s => s.replace(/\\/g, '/'));
   const output = spawnSync(process.execPath, args, { encoding : 'utf8' });
-  return ts.ScriptSnapshot.fromString(output.stdout);
+  return ts.ScriptSnapshot.fromString(output.stdout+`/*${output.stderr}*/`);
 }
