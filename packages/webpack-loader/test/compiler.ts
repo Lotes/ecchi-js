@@ -19,7 +19,7 @@ export default (fixture: string) => {
       rules: [
         {
           test: /\.ecchi$/,
-          use: ["ts-loader", path.resolve(__dirname, "../out/index.js")],
+          use: [{loader: "ts-loader"}, {loader: path.resolve(__dirname, "../out/index.js")}],
         },
       ],
     },
