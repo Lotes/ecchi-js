@@ -1,3 +1,3 @@
 import { execute } from "./execute.js";
 
-console.log(execute(process.argv[2]));
+execute(process.argv[2])?.then(console.log);;

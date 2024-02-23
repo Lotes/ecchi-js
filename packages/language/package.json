@@ -5,8 +5,8 @@
   "type": "module",
   "exports": {
     ".": {
-      "default": "./out/src/generators/main.js",
-      "types": "./out/src/generators/main.d.ts"
+      "default": "./out/src/generators/generate.js",
+      "types": "./out/src/generators/generate.d.ts"
     }
   },
   "files": [
@@ -18,7 +18,7 @@
   },
   "scripts": {
     "clean": "rm -rf out",
-    "build": "tsc -b tsconfig.src.json --force",
+    "build": "tsc -b tsconfig.src.json",
     "lint": "eslint src --ext ts",
     "langium:generate": "langium generate",
     "langium:watch": "langium generate --watch",

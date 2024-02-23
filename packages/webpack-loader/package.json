@@ -19,11 +19,13 @@
     "webpack": "^5.90.2"
   },
   "dependencies": {
-    "@ecchi-js/cli": "^0.0.1",
-    "@types/webpack": "^5.28.5"
+    "@ecchi-js/language": "^0.0.1",
+    "@types/webpack": "^5.28.5",
+    "ts-loader": "^9.5.1"
   },
   "devDependencies": {
     "memfs": "^4.7.7",
+    "path-browserify": "^1.0.1",
     "vitest": "^1.3.1"
   }
 }
