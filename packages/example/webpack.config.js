@@ -1,5 +1,6 @@
 const path = require('path');
 
+const inspect = { loader: "inspect-loader", options: { callback: console.log } };
 module.exports = {
   entry: path.resolve(__dirname, './src/index.ts'),
   output: {
@@ -21,7 +22,7 @@ module.exports = {
   ],
   module: {
     rules: [
-      { test: /\.ecchi$/, use: [{loader:"ts-loader"}, {loader:"@ecchi-js/webpack-loader"}]  },
+      { test: /\.ecchi$/, use: [{loader: "ts-loader", options:{transpileOnly: true}}, "@ecchi-js/webpack-loader"]  },
       { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" },
     ]
   }

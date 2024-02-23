@@ -11,4 +11,4 @@ static/monaco-editor-workers/
 static/worker/
 syntaxes/
 **/*.tsbuildinfo
-**/bundle.js
+packages/webpack-loader/test/bundle.js
