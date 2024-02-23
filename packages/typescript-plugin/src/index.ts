@@ -1,5 +1,5 @@
 import tsModule from 'typescript/lib/tsserverlibrary.js';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { generateSnapshot } from './snapshot.js';
 import { dirname, resolve } from 'path';
 

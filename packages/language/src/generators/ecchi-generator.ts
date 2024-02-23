@@ -39,7 +39,7 @@ ${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u 
     return dts;
   }
   generateUser(users: UserDefinition[]) {
-    return `export type $UserType = ${users[0].type.ref?.name};`;
+    return `export type $UserType = ${users[0]?.type?.ref?.name};`;
   }
   private getSubjectActions(member: SubjectDefinition) {
     const parents: Record<string, string|undefined> = Object.fromEntries(member.members.map(m => [m.name, m.superAction?.ref?.name] as const));

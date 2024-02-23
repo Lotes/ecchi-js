@@ -4,6 +4,6 @@ import { join } from "path";
 
 test("execute", async () => {
   const fileName = join(__dirname, "..", "..", "..", "resources", "OneType.ecchi");
-  const result = execute(fileName);
+  const result = await execute(fileName);
   expect(result).toMatchSnapshot();
 });

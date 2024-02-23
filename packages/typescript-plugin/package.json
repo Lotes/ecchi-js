@@ -12,7 +12,7 @@
   },
   "scripts": {
     "clean": "rm -rf out",
-    "build": "tsc -b tsconfig.src.json --verbose --force"
+    "build": "tsc -b tsconfig.src.json"
   },
   "dependencies": {
     "@ecchi-js/core": "^0.0.1",

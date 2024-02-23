@@ -24,9 +24,9 @@
     "packages/cli",
     "packages/typescript-plugin",
     "packages/react",
-    "packages/example",
     "packages/vscode-extension",
-    "packages/webpack-loader"
+    "packages/webpack-loader",
+    "packages/example"
   ],
   "scripts": {
     "clean": "npm run clean --workspaces --if-present",
