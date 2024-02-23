@@ -80,7 +80,7 @@ ${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u 
         return `${action}: [[${left}, ${right}],  ${index}]`;
       }).join(',\n    ')}
   })]`; 
-  }).join('\n  ')}
+  }).join(',\n  ')}
 } satisfies SubjectActionsBase<$Types>;    
 `;
   }

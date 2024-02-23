@@ -1,4 +1,4 @@
-import { $UserType, $Conditions, $Reflection, $SubjectActions} from "./Blog.ecchi";
+import { $UserType, $Reflection, $SubjectActions} from "./Blog.ecchi";
 
 const user: $UserType = {
   $type: "UserType",
@@ -9,4 +9,4 @@ const user: $UserType = {
   updatedAt: '',
 };
 
-console.log($Reflection, $Conditions, $SubjectActions, user);
+console.log($Reflection, $SubjectActions, user);
