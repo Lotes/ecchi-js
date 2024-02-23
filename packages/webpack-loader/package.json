@@ -19,7 +19,7 @@
     "webpack": "^5.90.2"
   },
   "dependencies": {
-    "@ecchi-js/language": "^0.0.1",
+    "@ecchi-js/cli": "^0.0.1",
     "@types/webpack": "^5.28.5",
     "ts-loader": "^9.5.1"
   },

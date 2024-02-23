@@ -1,6 +1,6 @@
 import path from "path";
 import webpack from "webpack";
-import { createFsFromVolume, Volume } from "memfs";
+import fs from "fs";
 
 export default (fixture: string) => {
   const compiler = webpack({
@@ -10,11 +10,11 @@ export default (fixture: string) => {
       path: path.resolve(__dirname),
       filename: "bundle.js",
     },
-    resolve: {
-      fallback: {
-        path: require.resolve("path-browserify"),
-      }
-    },
+    externals: [
+      'child_process',
+      'fs',
+      'fs/promises'
+    ],
     module: {
       rules: [
         {
@@ -25,7 +25,7 @@ export default (fixture: string) => {
     },
   });
 
-  compiler.outputFileSystem = createFsFromVolume(new Volume());
+  compiler.outputFileSystem = fs;
   compiler.outputFileSystem.join = path.join.bind(path);
 
   return new Promise<webpack.Stats>((resolve, reject) => {

@@ -1,5 +1,4 @@
-import { startLanguageServer } from 'langium';
-import { NodeFileSystem } from 'langium/node';
+import { startLanguageServer, EmptyFileSystem } from 'langium';
 import { createConnection, ProposedFeatures } from 'vscode-languageserver/node.js';
 import { createEcchiServices } from './ecchi-module.js';
 
@@ -7,7 +6,7 @@ import { createEcchiServices } from './ecchi-module.js';
 const connection = createConnection(ProposedFeatures.all);
 
 // Inject the shared services and language-specific services
-const { shared } = createEcchiServices({ connection, ...NodeFileSystem });
+const { shared } = createEcchiServices({ connection, ...EmptyFileSystem });
 
 // Start the language server with the shared services
 startLanguageServer(shared);
