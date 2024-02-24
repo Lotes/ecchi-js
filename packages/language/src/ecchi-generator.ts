@@ -1,7 +1,15 @@
 import { URI, assertUnreachable } from "langium";
-import { EcchiServices } from "../ecchi-module.js";
-import { ConceptDefinition, Model, SubjectDefinition, TypeReference, UserDeclaration, isConceptDefinition, isSubjectDefinition } from "../generated/ast.js";
+import { EcchiServices, createEcchiServices } from "./ecchi-module.js";
+import { ConceptDefinition, Model, SubjectDefinition, TypeReference, UserDeclaration, isConceptDefinition, isSubjectDefinition } from "./generated/ast.js";
 import { NestedSetElement } from "@ecchi-js/core";
+import { EmptyFileSystem } from "langium";
+import { readFile } from "fs/promises";
+
+export async function generate(fileName: string) {
+  const services = createEcchiServices(EmptyFileSystem);
+  const input = await readFile(fileName, 'utf-8');
+  return await services.Ecchi.generator.EcchiGenerator.generate(input)
+}
 
 interface TypeTree {
   $type: string;
