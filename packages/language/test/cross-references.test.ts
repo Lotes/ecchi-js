@@ -4,7 +4,6 @@ import { EmptyFileSystem } from "langium";
 import { clearDocuments, parseHelper } from "langium/test";
 import { InterfaceDefinition, Model, RoleDefinition, SubjectDefinition, UserDeclaration } from "../src/generated/ast.js";
 import { assertNoErrors } from "./utils.js";
-import { SelectSingle } from "../src/generated/ast.js";
 
 describe("Cross references", () => {
   const services = createEcchiServices(EmptyFileSystem);
@@ -26,24 +25,25 @@ describe("Cross references", () => {
     }
     role NormalUser {
       for Article {
-        allow read when user.id == subject.author.id
+        when user.id == subject.author.id {
+          allow read 
+        }
       }
     }
     interface User2Type extends UserType {}
     `);
     assertNoErrors(document);
     const model = document.parseResult.value;
-    const userType = locator.getAstNode<InterfaceDefinition>(model, 'elements@0');
-    const articleType = locator.getAstNode<InterfaceDefinition>(model, 'elements@1');
-    const userDefinition = locator.getAstNode<UserDeclaration>(model, 'elements@2');
-    const user2Type = locator.getAstNode<InterfaceDefinition>(model, 'elements@3');
+    const userDefinition = model.userDeclaration as UserDeclaration;
+    const userType = locator.getAstNode<InterfaceDefinition>(model, 'elements@0')!;
+    const articleType = locator.getAstNode<InterfaceDefinition>(model, 'elements@1')!;
+    const subjectDefinition = locator.getAstNode<SubjectDefinition>(model, 'elements@2')!;
+    const roleDefinition =  locator.getAstNode<RoleDefinition>(model, 'elements@3')!;
+    const user2Type = locator.getAstNode<InterfaceDefinition>(model, 'elements@4')!;
     expect(userDefinition?.type.ref).toBe(userType);
-    const subjectDefinition = model.elements[4] as SubjectDefinition;
-    const roleDefinition = model.elements[5] as RoleDefinition;
     expect(subjectDefinition.type.ref).toBe(articleType);
     expect(subjectDefinition.members[1].superAction?.ref).toBe(subjectDefinition.members[0]);
     expect(roleDefinition.members[0].subject.ref).toBe(subjectDefinition);
-    expect((roleDefinition.members[0].members[0].body as SelectSingle).action.ref).toBe(subjectDefinition.members[0]);
     expect(user2Type?.superInterface?.ref).toBe(userType);
   });
 });

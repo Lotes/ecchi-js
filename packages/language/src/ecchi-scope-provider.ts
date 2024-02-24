@@ -16,6 +16,7 @@ import {
   InterfaceDefinition,
   TypeDefinition,
   isDefinition,
+  isForMember,
   isInterfaceDefinition,
   isModel,
   isObjectType,
@@ -123,16 +124,17 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           }
         }
         break;
-      case "SelectSingle":
+      case "PermissionAction":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
               typeof container
             >;
           if (property === "action") {
-            return container.$container.$container.subject.ref
+            const subject = getContainerOfType(container, isForMember)!.subject.ref;
+            return subject
               ? this.createScopeForNodes(
-                  container.$container.$container.subject.ref?.members
+                  subject.members
                 )
               : this.getGlobalScope(referenceType, referenceInfo);
           } else {

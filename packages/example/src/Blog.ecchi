@@ -57,9 +57,9 @@ role AdminUser {
 }
 role NormalUser {
   for Article {
-    if(user.id == subject.author.id) {
+    when user.id == subject.author.id {
       allow archive
-    } else {
+    } otherwise {
       allow read
     }
   }
