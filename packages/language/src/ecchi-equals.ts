@@ -1,5 +1,5 @@
 import { assertUnreachable } from "langium";
-import { ConceptDefinition, TypeReference } from "../generated/ast.js";
+import { ConceptDefinition, TypeReference } from "./generated/ast.js";
 
 export function equalTypes(a: TypeReference, b: TypeReference): boolean {
   if (a.$type !== b.$type) {

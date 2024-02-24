@@ -1,5 +1,5 @@
 import { AstNode, assertUnreachable, getContainerOfType } from "langium";
-import { BinaryExpression, ConceptDefinition, Expression, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isForMember, isModel } from "../generated/ast.js";
+import { BinaryExpression, ConceptDefinition, Expression, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isForMember, isModel } from "./generated/ast.js";
 
 export class TypeInferenceError<N extends AstNode> extends Error {
   constructor(message: string, public expression: N, public property: Exclude<keyof N, `$${string}`>) {

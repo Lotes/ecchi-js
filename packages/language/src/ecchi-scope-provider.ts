@@ -20,7 +20,7 @@ import {
   isModel,
   isSubjectDefinition,
 } from "./generated/ast.js";
-import { inferType } from "./type-system/ecchi-infer-type.js";
+import { inferType } from "./ecchi-infer-type.js";
 
 export class EcchiScopeProvider extends DefaultScopeProvider {
   constructor(services: LangiumServices) {
