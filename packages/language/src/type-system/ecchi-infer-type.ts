@@ -1,5 +1,5 @@
 import { AstNode, assertUnreachable, getContainerOfType } from "langium";
-import { ArrayMemberAccess, BinaryExpression, Expression, InterfaceDefinition, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isArrayType, isForMember, isInterfaceDefinition, isModel, isTypeDefinition } from "../generated/ast.js";
+import { BinaryExpression, ConceptDefinition, Expression, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isForMember, isModel } from "../generated/ast.js";
 
 export class TypeInferenceError<N extends AstNode> extends Error {
   constructor(message: string, public expression: N, public property: Exclude<keyof N, `$${string}`>) {
@@ -12,16 +12,18 @@ export const Types = {
   Null: (): TypeReference => ({ $type: 'NullType', $container: undefined! }),
   Number: (): TypeReference => ({ $type: 'NumberType', $container: undefined! }),
   String: (): TypeReference => ({ $type: 'StringType', $container: undefined! }),
-  Object: (definition: InterfaceDefinition): TypeReference => ({
-    $type: 'ObjectType',
-    members: definition.members,
+  Object: (definition: ConceptDefinition): TypeReference => ({
+    $type: 'ConceptReference',
+    type: {
+      ref: definition,
+      $refText: definition.name
+    },
     $container: undefined! 
   }),
 };
 
 export function inferType(expression: Expression): TypeReference {
   switch (expression.$type) {
-    case "ArrayMemberAccess": return inferArrayMemberAccess(expression);
     case "BooleanLiteral": return Types.Boolean();
     case "NullLiteral": return Types.Null();
     case "NumberLiteral": return Types.Number();
@@ -42,29 +44,15 @@ function inferPropertyMemberAccess(expression: PropertyMemberAccess) {
     throw new TypeInferenceError('Unknown member type.', expression, 'member');
   }
   switch(memberType.$type) {
-    case 'TypeDefinitionReference':
+    case 'ConceptReference':
       const ref = memberType.type.ref;
       if(!ref) {
         throw new TypeInferenceError('Unknown member type.', expression, 'member');
-      } else if(isInterfaceDefinition(ref)) {
-        return Types.Object(ref);
-      } else if(isTypeDefinition(ref)) {
-        return ref.expression;
-      } else {
-        assertUnreachable(ref);
       }
-      break;
+      return Types.Object(ref);
     default:
       return memberType;
   }
-}
-
-function inferArrayMemberAccess(expression: ArrayMemberAccess) {
-  const arrayType = inferType(expression.receiver);
-  if(isArrayType(arrayType)) {
-    return arrayType.type;
-  }
-  throw new TypeInferenceError('Array access requires array as receiver.', expression, 'receiver');
 }
 
 function inferRootMember(expression: RootMember): TypeReference {

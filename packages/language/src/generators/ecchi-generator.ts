@@ -1,6 +1,6 @@
 import { URI, assertUnreachable } from "langium";
 import { EcchiServices } from "../ecchi-module.js";
-import { InterfaceDefinition, Model, SubjectDefinition, TypeReference, UserDeclaration, UserMemberDefinition, isInterfaceDefinition, isSubjectDefinition, isUserMemberDefinition } from "../generated/ast.js";
+import { ConceptDefinition, Model, SubjectDefinition, TypeReference, UserDeclaration, isConceptDefinition, isSubjectDefinition } from "../generated/ast.js";
 import { NestedSetElement } from "@ecchi-js/core";
 
 interface TypeTree {
@@ -34,7 +34,7 @@ ${this.generateReflection(interfaces, nestedSets)}
 
 ${this.generateUser(model.userDeclaration)}
 
-${this.generateSubjectActions(model.elements.filter(isUserMemberDefinition))}
+${this.generateSubjectActions(model.elements.filter(isSubjectDefinition))}
 `;
     return dts;
   }
@@ -52,8 +52,8 @@ ${this.generateSubjectActions(model.elements.filter(isUserMemberDefinition))}
       children
     };
   }
-  generateSubjectActions(members: UserMemberDefinition[]) {
-    const subjects = members.filter(isSubjectDefinition);
+  generateSubjectActions(members: SubjectDefinition[]) {
+    const subjects = members;
     return `export const $SubjectActions = {
   ${subjects.map(subject => {
     const { children, parents } = this.getSubjectActions(subject);
@@ -84,9 +84,9 @@ ${this.generateSubjectActions(model.elements.filter(isUserMemberDefinition))}
 } satisfies SubjectActionsBase<$Types>;    
 `;
   }
-  private generateReflection(interfaces: InterfaceDefinition[], nestedSets: Map<string, NestedSetElement>) {
+  private generateReflection(concepts: ConceptDefinition[], nestedSets: Map<string, NestedSetElement>) {
     return `export const $Reflection = new Reflection<$Types>({
-  ${interfaces.map(iface => {
+  ${concepts.map(iface => {
   const set = nestedSets.get(iface.name)!;
   return `${iface.name}: [${set[0]},  ${set[1]}],`
 }).join('\n  ')}
@@ -95,7 +95,7 @@ ${this.generateSubjectActions(model.elements.filter(isUserMemberDefinition))}
   private getInterfaces(model: Model) {
     const map = new Map<string, TypeTree>();
     const nestedSets = new Map<string, NestedSetElement>();
-    const interfaces = model.elements.filter(isInterfaceDefinition);
+    const interfaces = model.elements.filter(isConceptDefinition);
     const roots: TypeTree[] = [];
     for (const iface of interfaces) {
       map.set(iface.name, {
@@ -130,12 +130,12 @@ ${this.generateSubjectActions(model.elements.filter(isUserMemberDefinition))}
     return { interfaces, nestedSets, trees: map };
   }
 
-  public generateTypes(interfaces: InterfaceDefinition[], trees: Map<string, TypeTree>) {
+  public generateTypes(concepts: ConceptDefinition[], trees: Map<string, TypeTree>) {
     function visit(name: string) {
       const subTypes: string = trees.get(name)!.children.map(c => visit(c.$type)).join('|');
       return `"${name}"${subTypes.length > 0 ? `|${subTypes}` : ''}`;
     }
-    return interfaces.map(type => { 
+    return concepts.map(type => { 
       return `interface ${type.name}${type.superInterface ? ` extends ${type.superInterface.ref?.name}` : ''} {
   $type: ${visit(type.name)};
   ${type.members.map(member => `${member.name}: ${this.generateTypeReference(member.type)};`).join('\n  ')}
@@ -143,7 +143,7 @@ ${this.generateSubjectActions(model.elements.filter(isUserMemberDefinition))}
 }).join('\n')+`
 
 export type $Types = {
-  ${interfaces.map(type => {
+  ${concepts.map(type => {
   return `${type.name}: ${type.name},`;
 }).join('\n  ')}
 }`;
@@ -152,13 +152,9 @@ export type $Types = {
     switch (type.$type) {
       case 'BooleanType': return 'boolean';
       case 'NumberType': return 'number';
+      case 'NullType': return 'null';
       case 'StringType': return 'string';
-      case 'TypeDefinitionReference': return type.type.ref!.name;
-      case 'ArrayType': return `${this.generateTypeReference(type.type)}[]`;
-      case "NullType": return 'null';
-      case "ObjectType": return `{
-  ${type.members.map(member => `${member.name}: ${this.generateTypeReference(member.type)};`).join('\n  ')
-}`;
+      case 'ConceptReference': return type.type.ref!.name;
       default: assertUnreachable(type);
     }
   }

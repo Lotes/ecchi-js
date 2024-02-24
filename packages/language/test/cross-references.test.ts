@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { createEcchiServices } from "../src/ecchi-module.js";
 import { EmptyFileSystem } from "langium";
 import { clearDocuments, parseHelper } from "langium/test";
-import { InterfaceDefinition, Model, RoleDefinition, SubjectDefinition, UserDeclaration } from "../src/generated/ast.js";
+import { ConceptDefinition, Model, RoleDefinition, SubjectDefinition, UserDeclaration } from "../src/generated/ast.js";
 import { assertNoErrors } from "./utils.js";
 
 describe("Cross references", () => {
@@ -17,8 +17,8 @@ describe("Cross references", () => {
   test("Scoping", async () => {
     const document = await parse(`
     use UserType as user
-    interface UserType { id: number }
-    interface ArticleType { author: UserType }
+    concept UserType { id: number }
+    concept ArticleType { author: UserType }
     subject Article of ArticleType {
       action read
       action edit extends read
@@ -30,16 +30,16 @@ describe("Cross references", () => {
         }
       }
     }
-    interface User2Type extends UserType {}
+    concept User2Type extends UserType {}
     `);
     assertNoErrors(document);
     const model = document.parseResult.value;
     const userDefinition = model.userDeclaration as UserDeclaration;
-    const userType = locator.getAstNode<InterfaceDefinition>(model, 'elements@0')!;
-    const articleType = locator.getAstNode<InterfaceDefinition>(model, 'elements@1')!;
+    const userType = locator.getAstNode<ConceptDefinition>(model, 'elements@0')!;
+    const articleType = locator.getAstNode<ConceptDefinition>(model, 'elements@1')!;
     const subjectDefinition = locator.getAstNode<SubjectDefinition>(model, 'elements@2')!;
     const roleDefinition =  locator.getAstNode<RoleDefinition>(model, 'elements@3')!;
-    const user2Type = locator.getAstNode<InterfaceDefinition>(model, 'elements@4')!;
+    const user2Type = locator.getAstNode<ConceptDefinition>(model, 'elements@4')!;
     expect(userDefinition?.type.ref).toBe(userType);
     expect(subjectDefinition.type.ref).toBe(articleType);
     expect(subjectDefinition.members[1].superAction?.ref).toBe(subjectDefinition.members[0]);

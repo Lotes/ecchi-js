@@ -5,26 +5,18 @@ entry Model:
   (elements+=Element)*;
 
 UserDeclaration:
-  'use' type=[InterfaceDefinition:ID] 'as' 'user'
+  'use' type=[ConceptDefinition:ID] 'as' 'user'
 ;
 
-Element:
-  InterfaceDefinition | TypeDefinition | UserMemberDefinition
-;
+Element: ConceptDefinition | SubjectDefinition | RoleDefinition;
 
-InterfaceDefinition:
-  'interface' name=ID ('extends' superInterface=[InterfaceDefinition:ID])? '{'
+ConceptDefinition:
+  'concept' name=ID ('extends' superInterface=[ConceptDefinition:ID])? '{'
     members+=PropertyMember*
   '}';
 
-TypeDefinition:
-  'type' name=ID '=' expression=TypeReference;
-
-UserMemberDefinition:
-  SubjectDefinition|RoleDefinition;
-
 SubjectDefinition:
-  'subject' name=ID 'of' type=[InterfaceDefinition:ID] '{'
+  'subject' name=ID 'of' type=[ConceptDefinition:ID] '{'
         members+=ActionMember*
     '}';
 
@@ -56,21 +48,18 @@ PermissionActions:
 PermissionAction: action=[ActionMember:ID];
 
 PropertyMember:
-  name=ID ':' type=TypeReference ';'?;
+  name=ID isOptional?='?'? ':' type=TypeReference ';'?;
 
 ActionMember:
   'action' name=ID ('extends' superAction=[ActionMember:ID])? ';'?
 ;
 
-type Definition = InterfaceDefinition | TypeDefinition;
 TypeReference:
-  {infer TypeDefinitionReference}type=[Definition:ID]
-    | {infer NumberType}'number'
-    | {infer StringType}'string'
-    | {infer BooleanType}'boolean'
-    | {infer NullType}'null'
-    | {infer ArrayType} '[' type=TypeReference ']'
-    | {infer ObjectType} '{' members+=PropertyMember* '}'
+  {infer ConceptReference}type=[ConceptDefinition:ID]
+  | {infer NumberType}'number'
+  | {infer NullType}'null'
+  | {infer StringType}'string'
+  | {infer BooleanType}'boolean'
 ;
 
 Expression infers Expression:
@@ -109,7 +98,7 @@ Unary infers Expression:
 Term infers Expression:
   Primary (
         {infer PropertyMemberAccess.receiver=current} '.' member=[PropertyMember:ID]
-        | {infer ArrayMemberAccess.receiver=current} '[' expr=Expression ']'
+//TODO:        | {infer ArrayMemberAccess.receiver=current} '[' expr=Expression ']'
     )*
 ;
 

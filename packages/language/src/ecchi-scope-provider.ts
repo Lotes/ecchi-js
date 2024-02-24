@@ -12,14 +12,12 @@ import {
   getDocument
 } from "langium";
 import {
+  ConceptDefinition,
   EcchiAstType,
-  InterfaceDefinition,
-  TypeDefinition,
-  isDefinition,
+  isConceptDefinition,
+  isConceptReference,
   isForMember,
-  isInterfaceDefinition,
   isModel,
-  isObjectType,
   isSubjectDefinition,
 } from "./generated/ast.js";
 import { inferType } from "./type-system/ecchi-infer-type.js";
@@ -61,7 +59,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           }
         }
         break;
-      case "InterfaceDefinition":
+      case "ConceptDefinition":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
@@ -69,7 +67,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             >;
           if (property === "superInterface") {
             return this.createScopeFromNodes(
-              container.$container.elements.filter(isInterfaceDefinition)
+              container.$container.elements.filter(isConceptDefinition)
             );
           } else {
             assertUnreachable(property);
@@ -84,8 +82,8 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             >;
           if (property === "member") {
             const receiverType = inferType(container.receiver);
-            if (isObjectType(receiverType)) {
-              return this.createScopeFromNodes(receiverType.members);
+            if (isConceptReference(receiverType) && receiverType.type.ref) {
+              return this.createScopeFromNodes(receiverType.type.ref.members);
             }
             return this.getGlobalScope(referenceType, referenceInfo);
           } else {
@@ -93,7 +91,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           }
         }
         break;
-      case "TypeDefinitionReference":
+      case "ConceptReference":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
@@ -116,7 +114,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           if (property === "type") {
             return this.createScopeForNodes(
               getContainerOfType(container, isModel)!.elements.filter(
-                isDefinition
+                isConceptDefinition
               )
             );
           } else {
@@ -149,8 +147,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
   private getTypeDefs(uri: URI): Scope {
     const set = new Set<string>([uri.toString()]);
     return this.createScope([
-      ...this.indexManager.allElements(InterfaceDefinition, set),
-      ...this.indexManager.allElements(TypeDefinition, set)
+      ...this.indexManager.allElements(ConceptDefinition, set)
     ]);
   }
 

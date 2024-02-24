@@ -1,6 +1,6 @@
 use UserType as user
 
-interface UserType { 
+concept UserType { 
   id: number;
   name: string;
   email: string;

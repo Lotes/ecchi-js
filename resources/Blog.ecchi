@@ -1,6 +1,6 @@
 use UserType as user
 
-interface UserType { 
+concept UserType { 
   id: number;
   name: string;
   email: string;
@@ -8,7 +8,7 @@ interface UserType {
   updatedAt: string;
 }
 
-interface ArticleType {
+concept ArticleType {
   id: number;
   title: string;
   content: string;
@@ -17,7 +17,8 @@ interface ArticleType {
   author: UserType;
   published: boolean;
 }
-interface CommentType {
+
+concept CommentType {
   id: number;
   content: string;
   createdAt: string;
@@ -27,8 +28,9 @@ interface CommentType {
   published: boolean;
 }
 
-interface A {}
-interface B extends A {}
+concept A {}
+concept B extends A {}
+
 
 subject Article of ArticleType {
   action create
