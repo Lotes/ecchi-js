@@ -33,6 +33,7 @@ export function inferType(expression: Expression): TypeReference {
     case "StringLiteral": return Types.String();
     case "UnaryExpression": return inferUnaryExpression(expression);
     case "BinaryExpression": return inferBinaryExpression(expression);
+    case "TypeOfExpression": return Types.String();
     default:
       assertUnreachable(expression);
   }

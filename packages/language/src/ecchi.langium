@@ -102,10 +102,10 @@ Term infers Expression:
     )*
 ;
 
-Primary infers Expression:
-  {infer Parentheses} '(' expr=Expression ')'
+Primary infers Expression: {infer Parentheses} '(' expr=Expression ')'
     | Literal
     | {infer RootMember}(isSubjectRoot?='subject'|'user')
+    | {infer TypeOfExpression} 'typeof' type=[ConceptDefinition:ID]
 ;
 
 Literal infers Expression:
