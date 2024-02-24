@@ -1,10 +1,15 @@
 grammar Ecchi
 
 entry Model:
-    (elements+=Element)*;
+  userDeclaration=UserDeclaration
+  (elements+=Element)*;
+
+UserDeclaration:
+  'use' type=[InterfaceDefinition:ID] 'as' 'user'
+  ;
 
 Element:
-    InterfaceDefinition | TypeDefinition | UserDefinition
+    InterfaceDefinition | TypeDefinition | UserMemberDefinition
     ;
 
 InterfaceDefinition:
@@ -14,11 +19,6 @@ InterfaceDefinition:
 
 TypeDefinition:
     'type' name=ID '=' expression=TypeReference;
-
-UserDefinition:
-    'user' 'of' type=[InterfaceDefinition:ID] '{'
-        members+=UserMemberDefinition*
-    '}';
 
 UserMemberDefinition:
     SubjectDefinition|RoleDefinition;

@@ -1,3 +1,5 @@
+use UserType as user
+
 interface UserType { 
   id: number;
   name: string;
@@ -6,5 +8,3 @@ interface UserType {
   updatedAt: string;
 }
 
-
-user of UserType {}

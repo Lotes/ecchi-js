@@ -1,5 +1,5 @@
 import { AstNode, assertUnreachable, getContainerOfType } from "langium";
-import { ArrayMemberAccess, BinaryExpression, Expression, InterfaceDefinition, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isArrayType, isForMember, isInterfaceDefinition, isTypeDefinition, isUserDefinition } from "../generated/ast.js";
+import { ArrayMemberAccess, BinaryExpression, Expression, InterfaceDefinition, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isArrayType, isForMember, isInterfaceDefinition, isModel, isTypeDefinition } from "../generated/ast.js";
 
 export class TypeInferenceError<N extends AstNode> extends Error {
   constructor(message: string, public expression: N, public property: Exclude<keyof N, `$${string}`>) {
@@ -76,8 +76,8 @@ function inferRootMember(expression: RootMember): TypeReference {
     }
     return Types.Object(subjectType);
   } else {
-    const userDefinition = getContainerOfType(expression, isUserDefinition)!;
-    const userType = userDefinition.type.ref;
+    const model = getContainerOfType(expression, isModel)!;
+    const userType = model.userDeclaration.type.ref;
     if(!userType) {
       throw new TypeInferenceError('Unknown user type.', expression, 'isSubjectRoot');
     }

@@ -1,3 +1,5 @@
+use UserType as user
+
 interface UserType { 
   id: number;
   name: string;
@@ -28,38 +30,37 @@ interface CommentType {
 interface A {}
 interface B extends A {}
 
-user of UserType {
-  subject Article of ArticleType {
-    action create
-    action read
-    action edit extends read
-    action archive extends edit
-    action publish extends edit
-    action delete extends archive
+
+subject Article of ArticleType {
+  action create
+  action read
+  action edit extends read
+  action archive extends edit
+  action publish extends edit
+  action delete extends archive
+}
+subject Comment of CommentType {
+  action read
+  action answer extends read
+  action edit extends read
+  action archive extends edit
+  action delete extends archive
+  action publish extends edit
+}
+role AdminUser {
+  for Article {
+    allow *
   }
-  subject Comment of CommentType {
-    action read
-    action answer extends read
-    action edit extends read
-    action archive extends edit
-    action delete extends archive
-    action publish extends edit
+  for Comment {
+    allow *
   }
-  role AdminUser {
-    for Article {
-      allow *
-    }
-    for Comment {
-      allow *
-    }
-  }
-  role NormalUser {
-    for Article {
-      if(user.id == subject.author.id) {
-        allow archive
-      } else {
-        allow read
-      }
+}
+role NormalUser {
+  for Article {
+    if(user.id == subject.author.id) {
+      allow archive
+    } else {
+      allow read
     }
   }
 }

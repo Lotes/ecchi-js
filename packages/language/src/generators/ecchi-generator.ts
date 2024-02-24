@@ -1,6 +1,6 @@
 import { URI, assertUnreachable } from "langium";
 import { EcchiServices } from "../ecchi-module.js";
-import { InterfaceDefinition, Model, SubjectDefinition, TypeReference, UserDefinition, UserMemberDefinition, isInterfaceDefinition, isSubjectDefinition, isUserDefinition } from "../generated/ast.js";
+import { InterfaceDefinition, Model, SubjectDefinition, TypeReference, UserDeclaration, UserMemberDefinition, isInterfaceDefinition, isSubjectDefinition, isUserMemberDefinition } from "../generated/ast.js";
 import { NestedSetElement } from "@ecchi-js/core";
 
 interface TypeTree {
@@ -32,14 +32,14 @@ ${this.generateTypes(interfaces, trees)}
 
 ${this.generateReflection(interfaces, nestedSets)}
 
-${this.generateUser(model.elements.filter(isUserDefinition))}
+${this.generateUser(model.userDeclaration)}
 
-${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u => u.members))}
+${this.generateSubjectActions(model.elements.filter(isUserMemberDefinition))}
 `;
     return dts;
   }
-  generateUser(users: UserDefinition[]) {
-    return `export type $UserType = ${users[0]?.type?.ref?.name};`;
+  generateUser(user: UserDeclaration) {
+    return `export type $UserType = ${user.type?.ref?.name};`;
   }
   private getSubjectActions(member: SubjectDefinition) {
     const parents: Record<string, string|undefined> = Object.fromEntries(member.members.map(m => [m.name, m.superAction?.ref?.name] as const));
@@ -74,7 +74,7 @@ ${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u 
     for (const node of Object.entries(parents).filter(([_, parent]) => parent === undefined).map(([action]) => action)){
       visit(node);
     }
-    return `${subject.name}: ["${subject.type.ref?.name}", new SubjectActions<${type}>({
+    return `${subject.name}: ["${subject.type?.ref?.name}", new SubjectActions<${type}>({
     ${Object.keys(parents).map((action, index) => {
         const [left, right] = nestedSets.get(action)!;
         return `${action}: [[${left}, ${right}],  ${index}]`;

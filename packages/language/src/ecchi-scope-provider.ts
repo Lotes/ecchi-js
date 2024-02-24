@@ -19,6 +19,7 @@ import {
   isInterfaceDefinition,
   isModel,
   isObjectType,
+  isSubjectDefinition,
 } from "./generated/ast.js";
 import { inferType } from "./type-system/ecchi-infer-type.js";
 
@@ -52,7 +53,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             >;
           if (property === "subject") {
             return this.createScopeFromNodes(
-              container.$container.$container.members
+              container.$container.$container.elements.filter(isSubjectDefinition)
             );
           } else {
             assertUnreachable(property);
@@ -105,7 +106,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
         }
         break;
       case "SubjectDefinition":
-      case "UserDefinition":
+      case "UserDeclaration":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
