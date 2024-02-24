@@ -11,7 +11,7 @@ UserDeclaration:
 Element: ConceptDefinition | SubjectDefinition | RoleDefinition;
 
 ConceptDefinition:
-  'concept' name=ID ('extends' superInterface=[ConceptDefinition:ID])? '{'
+  'concept' name=ID ('extends' superConcept=[ConceptDefinition:ID])? '{'
     members+=PropertyMember*
   '}';
 

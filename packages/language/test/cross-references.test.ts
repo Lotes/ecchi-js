@@ -44,6 +44,6 @@ describe("Cross references", () => {
     expect(subjectDefinition.type.ref).toBe(articleType);
     expect(subjectDefinition.members[1].superAction?.ref).toBe(subjectDefinition.members[0]);
     expect(roleDefinition.members[0].subject.ref).toBe(subjectDefinition);
-    expect(user2Type?.superInterface?.ref).toBe(userType);
+    expect(user2Type?.superConcept?.ref).toBe(userType);
   });
 });

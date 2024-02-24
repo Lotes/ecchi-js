@@ -71,7 +71,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             referenceInfo.property as CrossReferencesOfAstNodeType<
               typeof container
             >;
-          if (property === "superInterface") {
+          if (property === "superConcept") {
             return this.createScopeFromNodes(
               container.$container.elements.filter(isConceptDefinition)
             );
