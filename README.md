@@ -28,6 +28,8 @@ Long version: **The project is still work in progress.**
 
 ## Contribution notes
 
+### How to start?
+
 For install, build and test simply use:
 
 ```bash
@@ -36,7 +38,7 @@ npm run build
 npm test
 ```
 
-### Packages
+### Package overview
 
 ![Dependencies](docs/dependencies.svg)
 
@@ -48,6 +50,22 @@ npm test
 * `vscode-extension` - extension with language editor support
 * `webpack-loader` - loader for Webpack
 * `example` - example usage of the language
+
+### Core implementation
+
+Concepts and actions come in the shape of an inheritance hierarchy or tree graph.
+
+Permissions are encoded as one bitmask per subject and per mode (allow or forbid) where each bit stands for on action that can be performed by the user.
+
+Hierarchies of actions and bitmasks of actions behave differently:
+* when you allow an action A, then every super action B will be allowed as well
+* when you forbid an action F, then every sub action G will be allowed as well
+
+Let's assume we have three actions ˋreadˋ, ˋwriteˋ and ˋdeleteˋ where ˋdeleteˋ is a sub-action of ˋwriteˋ, which is a sub-action of ˋreadˋ.
+* if you allow writing, it will also allow reading
+* if you forbid writing, it will also forbid deleting.
+
+Nice, huh?!
 
 ## Why is this language called „Ecchi!“?
 
