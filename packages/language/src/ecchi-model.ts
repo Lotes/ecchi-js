@@ -1,6 +1,20 @@
 import { NestedSetElement } from "@ecchi-js/core";
 import { ActionMember, ConceptDefinition, Model, SubjectDefinition, isConceptDefinition, isSubjectDefinition } from "./generated/ast.js";
 
+export interface EcchiModel {
+  user: ConceptDefinition|undefined;
+  concepts: {
+    instances: ConceptDefinition[];
+    map: Map<string, Tree<ConceptDefinition>>;
+    roots: Tree<ConceptDefinition>[];
+    hierarchy: Map<ConceptDefinition, NestedSetElement>;
+  };
+  subjects: {
+    instances: SubjectDefinition[];
+    map: Map<string, SubjectData>;
+  };
+}
+
 export interface SubjectData {
   instances: Map<string, Tree<ActionMember>>;
   roots: Tree<ActionMember>[];
@@ -8,7 +22,7 @@ export interface SubjectData {
   parents: Map<string, string|undefined>;
 }
 
-export function buildDomain(model: Model) {
+export function buildDomain(model: Model): EcchiModel {
   const concepts = getConcepts(model);
   const conceptMap = getConceptMap(concepts);
   const conceptsRoots = getHierarchy(conceptMap,  concept => concept.superConcept?.ref?.name);

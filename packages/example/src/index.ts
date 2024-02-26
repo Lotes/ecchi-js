@@ -1,4 +1,4 @@
-import { $UserType, $Reflection, $SubjectActions} from "./Blog.ecchi";
+import { $UserType, $Reflection, $SubjectActions } from "./Blog.ecchi";
 
 const user: $UserType = {
   $type: "UserType",

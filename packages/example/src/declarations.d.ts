@@ -1,6 +1,7 @@
 declare module "*.ecchi" {
   import type { Reflection, SubjectActionsBase, TypeBase } from "@ecchi-js/core";
   export type $UserType = TypeBase;
+  export type $EnvironmentType = TypeBase|undefined;
   export type $Types = Record<string, TypeBase>;
   export const $Reflection = Reflection<$Types>;
   export const $SubjectActions: Record<string, SubjectActionsBase>;
