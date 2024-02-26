@@ -8,21 +8,23 @@ In short:
 
 > Define a hierarchy of access rules and check if a user has permissions to act on a resource.
 
-Long version:
+Long version: **The project is still work in progress.**
 
 1. define a hierarchy of access rules with its own domain-specific language
 2. ???
 3. profit
-4. TODO of course...
 
-## Concepts
+## Terms
 
-* users are persons or identities - something whose access to subjects needs to be clontrolled
-* subjects are resources like business objects, API endpoints etc.
-* actions on subjects are the possible manipulations you can trigger as a user, when you have the right roles or permissions
-* roles can be seen as groups of users, each user can have multiple roles. A role cannhave certain permissions on actions for a certain subject
-* permissions say whether you can allow or deny something
-* access rules define access between users and subject actions
+* _concepts_ are equally-shaped compounds of data
+  * concepts can inherit from other concepts
+* _users_ are persons or identities - concepts whose access to subjects needs to be controlled
+* _subjects_ are resources like business objects, API endpoints etc.
+* _actions_ on subjects are the possible manipulations you can trigger as a user, when you have the right roles or permissions
+  * actions can include other actions - they are modeled as a inheritance tree, like concepts are
+* _roles_ can be seen as groups of users, each user can have multiple roles. A role cannhave certain permissions on actions for a certain subject
+* _permissions_ reflect what actions a user is able to perform on subjects
+* _access rules_ define access between users and subject actions - you can allow and forbid actions
 
 ## Contribution notes
 
