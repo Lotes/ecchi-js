@@ -7,27 +7,30 @@ import { ActionsOf, SubjectActionsBase } from "./subject-actions.js";
 
 export type Claim<
   TTypes extends TypesBase,
+  TEnvironment extends TypeBase,
   TSubjectActions extends SubjectActionsBase<TTypes>,
   TUser extends TypeBase,
   TAction extends string
-> = [keyof TSubjectActions, Condition<TUser, TSubjectActions[]>, Bitmask<TAction>];
+> = [keyof TSubjectActions, Condition<TUser, TEnvironment, TSubjectActions[]>, Bitmask<TAction>];
 
 export type Claims<
   TTypes extends TypesBase,
+  TEnvironment extends TypeBase,
   TSubjectActions extends SubjectActionsBase<TTypes>,
   TUser extends TypeBase
 > = {
-  [S in keyof TSubjectActions]: Claim<TTypes, TSubjectActions, TUser, ActionsOf<TTypes, TSubjectActions, S>>[];
+  [S in keyof TSubjectActions]: Claim<TTypes, TEnvironment, TSubjectActions, TUser, ActionsOf<TTypes, TSubjectActions, S>>[];
 };
 
 export class UserPermissions<
   TUser extends TypeBase,
+  TEnvironment extends TypeBase,
   TTypes extends TypesBase,
   TSubjectActions extends SubjectActionsBase<TTypes>,
-  TRoleRules extends RoleRulesBase<TUser, TTypes, TSubjectActions>
+  TRoleRules extends RoleRulesBase<TUser, TEnvironment, TTypes, TSubjectActions>
 > {
-  private claims: Claims<TTypes, TSubjectActions, TUser> = {} as any;
-  private disclaims: Claims<TTypes, TSubjectActions, TUser> = {} as any;
+  private claims: Claims<TTypes, TEnvironment, TSubjectActions, TUser> = {} as any;
+  private disclaims: Claims<TTypes, TEnvironment, TSubjectActions, TUser> = {} as any;
   constructor(
     public readonly user: TUser,
     public readonly types: TTypes,
