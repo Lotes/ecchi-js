@@ -2,9 +2,8 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { createEcchiServices } from "../src/ecchi-module.js";
 import { EmptyFileSystem } from "langium";
 import { clearDocuments, parseHelper } from "langium/test";
-import { InterfaceDefinition, Model, RoleDefinition, SubjectDefinition, UserDefinition } from "../src/generated/ast.js";
+import { ConceptDefinition, Model, RoleDefinition, SubjectDefinition, UserDeclaration } from "../src/generated/ast.js";
 import { assertNoErrors } from "./utils.js";
-import { SelectSingle } from "../src/generated/ast.js";
 
 describe("Cross references", () => {
   const services = createEcchiServices(EmptyFileSystem);
@@ -17,34 +16,34 @@ describe("Cross references", () => {
 
   test("Scoping", async () => {
     const document = await parse(`
-    interface UserType { id: number }
-    interface ArticleType { author: UserType }
-    user of UserType {
-      subject Article of ArticleType {
-        action read
-        action edit extends read
-      }
-      role NormalUser {
-        for Article {
-          allow read when user.id == subject.author.id
+    use UserType as user
+    concept UserType { id: number }
+    concept ArticleType { author: UserType }
+    subject Article of ArticleType {
+      action read
+      action edit extends read
+    }
+    role NormalUser {
+      for Article {
+        when user.id == subject.author.id {
+          allow read 
         }
       }
     }
-    interface User2Type extends UserType {}
+    concept User2Type extends UserType {}
     `);
     assertNoErrors(document);
     const model = document.parseResult.value;
-    const userType = locator.getAstNode<InterfaceDefinition>(model, 'elements@0');
-    const articleType = locator.getAstNode<InterfaceDefinition>(model, 'elements@1');
-    const userDefinition = locator.getAstNode<UserDefinition>(model, 'elements@2');
-    const user2Type = locator.getAstNode<InterfaceDefinition>(model, 'elements@3');
+    const userDefinition = model.userDeclaration as UserDeclaration;
+    const userType = locator.getAstNode<ConceptDefinition>(model, 'elements@0')!;
+    const articleType = locator.getAstNode<ConceptDefinition>(model, 'elements@1')!;
+    const subjectDefinition = locator.getAstNode<SubjectDefinition>(model, 'elements@2')!;
+    const roleDefinition =  locator.getAstNode<RoleDefinition>(model, 'elements@3')!;
+    const user2Type = locator.getAstNode<ConceptDefinition>(model, 'elements@4')!;
     expect(userDefinition?.type.ref).toBe(userType);
-    const subjectDefinition = userDefinition?.members[0] as SubjectDefinition;
-    const roleDefinition = userDefinition?.members[1] as RoleDefinition;
     expect(subjectDefinition.type.ref).toBe(articleType);
     expect(subjectDefinition.members[1].superAction?.ref).toBe(subjectDefinition.members[0]);
     expect(roleDefinition.members[0].subject.ref).toBe(subjectDefinition);
-    expect((roleDefinition.members[0].members[0].body as SelectSingle).action.ref).toBe(subjectDefinition.members[0]);
-    expect(user2Type?.superInterface?.ref).toBe(userType);
+    expect(user2Type?.superConcept?.ref).toBe(userType);
   });
 });

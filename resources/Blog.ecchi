@@ -1,4 +1,6 @@
-interface UserType { 
+use UserType as user
+
+concept UserType { 
   id: number;
   name: string;
   email: string;
@@ -6,7 +8,7 @@ interface UserType {
   updatedAt: string;
 }
 
-interface ArticleType {
+concept ArticleType {
   id: number;
   title: string;
   content: string;
@@ -15,7 +17,8 @@ interface ArticleType {
   author: UserType;
   published: boolean;
 }
-interface CommentType {
+
+concept CommentType {
   id: number;
   content: string;
   createdAt: string;
@@ -25,41 +28,40 @@ interface CommentType {
   published: boolean;
 }
 
-interface A {}
-interface B extends A {}
+concept A {}
+concept B extends A {}
 
-user of UserType {
-  subject Article of ArticleType {
-    action create
-    action read
-    action edit extends read
-    action archive extends edit
-    action publish extends edit
-    action delete extends archive
+
+subject Article of ArticleType {
+  action create
+  action read
+  action edit extends read
+  action archive extends edit
+  action publish extends edit
+  action delete extends archive
+}
+subject Comment of CommentType {
+  action read
+  action answer extends read
+  action edit extends read
+  action archive extends edit
+  action delete extends archive
+  action publish extends edit
+}
+role AdminUser {
+  for Article {
+    allow *
   }
-  subject Comment of CommentType {
-    action read
-    action answer extends read
-    action edit extends read
-    action archive extends edit
-    action delete extends archive
-    action publish extends edit
+  for Comment {
+    allow *
   }
-  role AdminUser {
-    for Article {
-      allow *
-    }
-    for Comment {
-      allow *
-    }
-  }
-  role NormalUser {
-    for Article {
-      if(user.id == subject.author.id) {
-        allow archive
-      } else {
-        allow read
-      }
+}
+role NormalUser {
+  for Article {
+    when user.id == subject.author.id {
+      allow archive
+    } otherwise {
+      allow read
     }
   }
 }

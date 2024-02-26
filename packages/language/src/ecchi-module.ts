@@ -16,7 +16,7 @@ import {
 } from "./generated/module.js";
 import { EcchiValidator, registerValidationChecks } from "./ecchi-validator.js";
 import { EcchiScopeProvider } from "./ecchi-scope-provider.js";
-import { EcchiGenerator } from "./generators/ecchi-generator.js";
+import { EcchiGenerator } from "./ecchi-generator.js";
 
 /**
  * Declaration of custom services - add your own service classes here.

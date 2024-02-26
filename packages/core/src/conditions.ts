@@ -1,13 +1,16 @@
-export type Condition<TUser, TSubject> = (user: TUser, subject: TSubject) => boolean;
-export function and<TUser, TSubject>(...conditions: Condition<TUser, TSubject>[]): Condition<TUser, TSubject> {
-  return (user, subject) => conditions.every(c => c(user, subject));
+export type Condition<TUser, TSubject, TEnvironment> = (user: TUser, subject: TSubject, environment: TEnvironment) => boolean;
+export function and<TUser, TSubject, TEnvironment>(...conditions: Condition<TUser, TSubject, TEnvironment>[]): Condition<TUser, TSubject, TEnvironment> {
+  return (user, subject, environment) => conditions.every(c => c(user, subject, environment));
 }
-export function not<TUser, TSubject>(condition: Condition<TUser, TSubject>): Condition<TUser, TSubject> {
-  return (user, subject) => !condition(user, subject);
+export function or<TUser, TSubject, TEnvironment>(...conditions: Condition<TUser, TSubject, TEnvironment>[]): Condition<TUser, TSubject, TEnvironment> {
+  return (user, subject, environment) => conditions.some(c => c(user, subject, environment));
 }
-export function makeTrue<TUser, TSubject>(): Condition<TUser, TSubject> {
+export function not<TUser, TSubject, TEnvironment>(condition: Condition<TUser, TSubject, TEnvironment>): Condition<TUser, TSubject, TEnvironment> {
+  return (user, subject, environment) => !condition(user, subject, environment);
+}
+export function yes<TUser, TSubject, TEnvironment>(): Condition<TUser, TSubject, TEnvironment> {
   return () => true;
 }
-export function makeFalse<TUser, TSubject>(): Condition<TUser, TSubject> {
+export function no<TUser, TSubject, TEnvironment>(): Condition<TUser, TSubject, TEnvironment> {
   return () => false;
 }

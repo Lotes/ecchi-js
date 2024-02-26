@@ -3,8 +3,8 @@
   "description": "Ecchi.js language",
   "version": "0.0.1",
   "type": "module",
-  "exports": "./out/src/generators/generate.js",
-  "types": "./out/src/generators/generate.d.ts",
+  "exports": "./out/src/ecchi-generator.js",
+  "types": "./out/src/ecchi-generator.d.ts",
   "files": [
     "out",
     "src"

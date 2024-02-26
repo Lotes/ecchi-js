@@ -12,15 +12,15 @@ import {
   getDocument
 } from "langium";
 import {
+  ConceptDefinition,
   EcchiAstType,
-  InterfaceDefinition,
-  TypeDefinition,
-  isDefinition,
-  isInterfaceDefinition,
+  isConceptDefinition,
+  isConceptReference,
+  isForMember,
   isModel,
-  isObjectType,
+  isSubjectDefinition,
 } from "./generated/ast.js";
-import { inferType } from "./type-system/ecchi-infer-type.js";
+import { inferType } from "./ecchi-infer-type.js";
 
 export class EcchiScopeProvider extends DefaultScopeProvider {
   constructor(services: LangiumServices) {
@@ -31,6 +31,12 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
       referenceInfo.container as AstNodeTypesWithCrossReferences<EcchiAstType>;
     const referenceType = this.reflection.getReferenceType(referenceInfo);
     switch (container.$type) {
+      case "TypeOfExpression":
+        return this.createScopeFromNodes(
+          getContainerOfType(container, isModel)!.elements.filter(
+            isConceptDefinition
+          )
+        );
       case "ActionMember":
         {
           const property =
@@ -52,22 +58,22 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             >;
           if (property === "subject") {
             return this.createScopeFromNodes(
-              container.$container.$container.members
+              container.$container.$container.elements.filter(isSubjectDefinition)
             );
           } else {
             assertUnreachable(property);
           }
         }
         break;
-      case "InterfaceDefinition":
+      case "ConceptDefinition":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
               typeof container
             >;
-          if (property === "superInterface") {
+          if (property === "superConcept") {
             return this.createScopeFromNodes(
-              container.$container.elements.filter(isInterfaceDefinition)
+              container.$container.elements.filter(isConceptDefinition)
             );
           } else {
             assertUnreachable(property);
@@ -82,8 +88,8 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             >;
           if (property === "member") {
             const receiverType = inferType(container.receiver);
-            if (isObjectType(receiverType)) {
-              return this.createScopeFromNodes(receiverType.members);
+            if (isConceptReference(receiverType) && receiverType.type.ref) {
+              return this.createScopeFromNodes(receiverType.type.ref.members);
             }
             return this.getGlobalScope(referenceType, referenceInfo);
           } else {
@@ -91,7 +97,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           }
         }
         break;
-      case "TypeDefinitionReference":
+      case "ConceptReference":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
@@ -105,7 +111,8 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
         }
         break;
       case "SubjectDefinition":
-      case "UserDefinition":
+      case "UserDeclaration":
+      case "EnvironmentDeclaration":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
@@ -114,7 +121,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           if (property === "type") {
             return this.createScopeForNodes(
               getContainerOfType(container, isModel)!.elements.filter(
-                isDefinition
+                isConceptDefinition
               )
             );
           } else {
@@ -122,23 +129,24 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
           }
         }
         break;
-      case "SelectSingle":
+      case "PermissionAction":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
               typeof container
             >;
           if (property === "action") {
-            return container.$container.$container.subject.ref
+            const subject = getContainerOfType(container, isForMember)!.subject.ref;
+            return subject
               ? this.createScopeForNodes(
-                  container.$container.$container.subject.ref?.members
+                  subject.members
                 )
               : this.getGlobalScope(referenceType, referenceInfo);
           } else {
             assertUnreachable(property);
           }
         }
-        break;
+        break;        
       default:
         assertUnreachable(container);
     }
@@ -146,8 +154,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
   private getTypeDefs(uri: URI): Scope {
     const set = new Set<string>([uri.toString()]);
     return this.createScope([
-      ...this.indexManager.allElements(InterfaceDefinition, set),
-      ...this.indexManager.allElements(TypeDefinition, set)
+      ...this.indexManager.allElements(ConceptDefinition, set)
     ]);
   }
 

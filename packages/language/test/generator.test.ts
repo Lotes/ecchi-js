@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { EcchiGenerator } from "../src/generators/ecchi-generator.js";
+import { EcchiGenerator } from "../src/ecchi-generator.js";
 import { createEcchiServices } from "../src/ecchi-module.js";
 import { EmptyFileSystem } from "langium";
 import { readFile } from "fs/promises";

@@ -1,11 +1,15 @@
 import { URI, assertUnreachable } from "langium";
-import { EcchiServices } from "../ecchi-module.js";
-import { InterfaceDefinition, Model, SubjectDefinition, TypeReference, UserDefinition, UserMemberDefinition, isInterfaceDefinition, isSubjectDefinition, isUserDefinition } from "../generated/ast.js";
+import { EcchiServices, createEcchiServices } from "./ecchi-module.js";
+import { ConceptDefinition, Model, SubjectDefinition, TypeReference, isSubjectDefinition } from "./generated/ast.js";
 import { NestedSetElement } from "@ecchi-js/core";
+import { EmptyFileSystem } from "langium";
+import { readFile } from "fs/promises";
+import { Tree, buildDomain } from "./ecchi-model.js";
 
-interface TypeTree {
-  $type: string;
-  children: TypeTree[];
+export async function generate(fileName: string) {
+  const services = createEcchiServices(EmptyFileSystem);
+  const input = await readFile(fileName, 'utf-8');
+  return await services.Ecchi.generator.EcchiGenerator.generate(input)
 }
 
 export class EcchiGenerator {
@@ -25,21 +29,21 @@ export class EcchiGenerator {
     }
   }
   private generateFromModel(model: Model) {
-    const { interfaces, nestedSets, trees } = this.getInterfaces(model);
+    const { concepts, user } = buildDomain(model);
     const dts = `${this.generateImports()}
 
-${this.generateTypes(interfaces, trees)}
+${this.generateTypes(concepts.instances, concepts.map)}
 
-${this.generateReflection(interfaces, nestedSets)}
+${this.generateReflection(concepts.instances, concepts.hierarchy)}
 
-${this.generateUser(model.elements.filter(isUserDefinition))}
+${this.generateUser(user)}
 
-${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u => u.members))}
+${this.generateSubjectActions(model.elements.filter(isSubjectDefinition))}
 `;
     return dts;
   }
-  generateUser(users: UserDefinition[]) {
-    return `export type $UserType = ${users[0]?.type?.ref?.name};`;
+  generateUser(user: ConceptDefinition | undefined) {
+    return `export type $UserType = ${user?.name};`;
   }
   private getSubjectActions(member: SubjectDefinition) {
     const parents: Record<string, string|undefined> = Object.fromEntries(member.members.map(m => [m.name, m.superAction?.ref?.name] as const));
@@ -52,8 +56,7 @@ ${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u 
       children
     };
   }
-  generateSubjectActions(members: UserMemberDefinition[]) {
-    const subjects = members.filter(isSubjectDefinition);
+  generateSubjectActions(subjects: SubjectDefinition[]) {
     return `export const $SubjectActions = {
   ${subjects.map(subject => {
     const { children, parents } = this.getSubjectActions(subject);
@@ -74,7 +77,7 @@ ${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u 
     for (const node of Object.entries(parents).filter(([_, parent]) => parent === undefined).map(([action]) => action)){
       visit(node);
     }
-    return `${subject.name}: ["${subject.type.ref?.name}", new SubjectActions<${type}>({
+    return `${subject.name}: ["${subject.type?.ref?.name}", new SubjectActions<${type}>({
     ${Object.keys(parents).map((action, index) => {
         const [left, right] = nestedSets.get(action)!;
         return `${action}: [[${left}, ${right}],  ${index}]`;
@@ -84,66 +87,29 @@ ${this.generateSubjectActions(model.elements.filter(isUserDefinition).flatMap(u 
 } satisfies SubjectActionsBase<$Types>;    
 `;
   }
-  private generateReflection(interfaces: InterfaceDefinition[], nestedSets: Map<string, NestedSetElement>) {
+  private generateReflection(concepts: ConceptDefinition[], nestedSets: Map<ConceptDefinition, NestedSetElement>) {
     return `export const $Reflection = new Reflection<$Types>({
-  ${interfaces.map(iface => {
-  const set = nestedSets.get(iface.name)!;
-  return `${iface.name}: [${set[0]},  ${set[1]}],`
+  ${concepts.map(concept => {
+  const set = nestedSets.get(concept)!;
+  return `${concept.name}: [${set[0]},  ${set[1]}],`
 }).join('\n  ')}
 });`;
   }
-  private getInterfaces(model: Model) {
-    const map = new Map<string, TypeTree>();
-    const nestedSets = new Map<string, NestedSetElement>();
-    const interfaces = model.elements.filter(isInterfaceDefinition);
-    const roots: TypeTree[] = [];
-    for (const iface of interfaces) {
-      map.set(iface.name, {
-        $type: iface.name,
-        children: []
-      });
-    }
-    for (const iface of interfaces) {
-      const node = map.get(iface.name)!;
-      if (iface.superInterface) {
-        const superNode = map.get(iface.superInterface.ref!.name)!;
-        superNode.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    }
-    let counter = 0;
-    function visit(node: TypeTree) {
-      const left = counter++;
-      for (const child of node.children) {
-        visit(child);
-      }
-      const right = counter++;
-      nestedSets.set(node.$type, [
-        left,
-        right
-      ]);
-    }
-    for (const node of roots) {
-      visit(node);
-    }
-    return { interfaces, nestedSets, trees: map };
-  }
 
-  public generateTypes(interfaces: InterfaceDefinition[], trees: Map<string, TypeTree>) {
-    function visit(name: string) {
-      const subTypes: string = trees.get(name)!.children.map(c => visit(c.$type)).join('|');
-      return `"${name}"${subTypes.length > 0 ? `|${subTypes}` : ''}`;
+  public generateTypes(concepts: ConceptDefinition[], trees: Map<string, Tree<ConceptDefinition>>) {
+    function visit(concept: ConceptDefinition) {
+      const subTypes: string = trees.get(concept.name)!.children.map(c => visit(c.content)).join('|');
+      return `"${concept.name}"${subTypes.length > 0 ? `|${subTypes}` : ''}`;
     }
-    return interfaces.map(type => { 
-      return `interface ${type.name}${type.superInterface ? ` extends ${type.superInterface.ref?.name}` : ''} {
-  $type: ${visit(type.name)};
+    return concepts.map(type => { 
+      return `interface ${type.name}${type.superConcept ? ` extends ${type.superConcept.ref?.name}` : ''} {
+  $type: ${visit(type)};
   ${type.members.map(member => `${member.name}: ${this.generateTypeReference(member.type)};`).join('\n  ')}
 }`;
 }).join('\n')+`
 
 export type $Types = {
-  ${interfaces.map(type => {
+  ${concepts.map(type => {
   return `${type.name}: ${type.name},`;
 }).join('\n  ')}
 }`;
@@ -152,13 +118,9 @@ export type $Types = {
     switch (type.$type) {
       case 'BooleanType': return 'boolean';
       case 'NumberType': return 'number';
+      case 'NullType': return 'null';
       case 'StringType': return 'string';
-      case 'TypeDefinitionReference': return type.type.ref!.name;
-      case 'ArrayType': return `${this.generateTypeReference(type.type)}[]`;
-      case "NullType": return 'null';
-      case "ObjectType": return `{
-  ${type.members.map(member => `${member.name}: ${this.generateTypeReference(member.type)};`).join('\n  ')
-}`;
+      case 'ConceptReference': return type.type.ref!.name;
       default: assertUnreachable(type);
     }
   }

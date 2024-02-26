@@ -8,23 +8,27 @@ In short:
 
 > Define a hierarchy of access rules and check if a user has permissions to act on a resource.
 
-Long version:
+Long version: **The project is still work in progress.**
 
 1. define a hierarchy of access rules with its own domain-specific language
 2. ???
 3. profit
-4. TODO of course...
 
-## Concepts
+## Terms
 
-* users are persons or identities - something whose access to subjects needs to be clontrolled
-* subjects are resources like business objects, API endpoints etc.
-* actions on subjects are the possible manipulations you can trigger as a user, when you have the right roles or permissions
-* roles can be seen as groups of users, each user can have multiple roles. A role cannhave certain permissions on actions for a certain subject
-* permissions say whether you can allow or deny something
-* access rules define access between users and subject actions
+* _concepts_ are equally-shaped compounds of data
+  * concepts can inherit from other concepts
+* _users_ are persons or identities - concepts whose access to subjects needs to be controlled
+* _subjects_ are resources like business objects, API endpoints etc.
+* _actions_ on subjects are the possible manipulations you can trigger as a user, when you have the right roles or permissions
+  * actions can include other actions - they are modeled as a inheritance tree, like concepts are
+* _roles_ can be seen as groups of users, each user can have multiple roles. A role cannhave certain permissions on actions for a certain subject
+* _permissions_ reflect what actions a user is able to perform on subjects
+* _access rules_ define access between users and subject actions - you can allow and forbid actions
 
 ## Contribution notes
+
+### How to start?
 
 For install, build and test simply use:
 
@@ -34,7 +38,7 @@ npm run build
 npm test
 ```
 
-### Packages
+### Package overview
 
 ![Dependencies](docs/dependencies.svg)
 
@@ -46,6 +50,22 @@ npm test
 * `vscode-extension` - extension with language editor support
 * `webpack-loader` - loader for Webpack
 * `example` - example usage of the language
+
+### Core implementation
+
+Concepts and actions come in the shape of an inheritance hierarchy or tree graph.
+
+Permissions are encoded as one bitmask per subject and per mode (allow or forbid) where each bit stands for on action that can be performed by the user.
+
+Hierarchies of actions and bitmasks of actions behave differently:
+* when you allow an action A, then every super action B will be allowed as well
+* when you forbid an action F, then every sub action G will be allowed as well
+
+Let's assume we have three actions ˋreadˋ, ˋwriteˋ and ˋdeleteˋ where ˋdeleteˋ is a sub-action of ˋwriteˋ, which is a sub-action of ˋreadˋ.
+* if you allow writing, it will also allow reading
+* if you forbid writing, it will also forbid deleting.
+
+Nice, huh?!
 
 ## Why is this language called „Ecchi!“?
 

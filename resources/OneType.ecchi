@@ -1,4 +1,6 @@
-interface UserType { 
+use UserType as user
+
+concept UserType { 
   id: number;
   name: string;
   email: string;
@@ -6,5 +8,3 @@ interface UserType {
   updatedAt: string;
 }
 
-
-user of UserType {}
