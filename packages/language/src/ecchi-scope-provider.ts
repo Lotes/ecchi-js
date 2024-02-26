@@ -112,6 +112,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
         break;
       case "SubjectDefinition":
       case "UserDeclaration":
+      case "EnvironmentDeclaration":
         {
           const property =
             referenceInfo.property as CrossReferencesOfAstNodeType<
@@ -145,7 +146,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
             assertUnreachable(property);
           }
         }
-        break;
+        break;        
       default:
         assertUnreachable(container);
     }

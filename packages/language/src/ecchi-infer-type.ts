@@ -57,20 +57,29 @@ function inferPropertyMemberAccess(expression: PropertyMemberAccess) {
 }
 
 function inferRootMember(expression: RootMember): TypeReference {
-  if(expression.isSubjectRoot) {
+  if(expression.isSubject) {
     const forMember = getContainerOfType(expression, isForMember)!;
     const subjectType = forMember?.subject.ref?.type.ref;
     if(!subjectType) {
-      throw new TypeInferenceError('Unknown subject type.', expression, 'isSubjectRoot');
+      throw new TypeInferenceError('Unknown subject type.', expression, 'isSubject');
     }
     return Types.Object(subjectType);
-  } else {
+  } else if(expression.isUser) {
     const model = getContainerOfType(expression, isModel)!;
     const userType = model.userDeclaration.type.ref;
     if(!userType) {
-      throw new TypeInferenceError('Unknown user type.', expression, 'isSubjectRoot');
+      throw new TypeInferenceError('Unknown user type.', expression, 'isUser');
     }
     return Types.Object(userType);
+  } else if(expression.isEnvironment) {
+    const model = getContainerOfType(expression, isModel)!;
+    const environmentType = model.environmentDeclaration?.type.ref;
+    if(!environmentType) {
+      throw new TypeInferenceError('Unknown environment type.', expression, 'isEnvironment');
+    }
+    return Types.Object(environmentType);
+  } else {
+    return undefined!;
   }
 }
 function inferUnaryExpression(expression: UnaryExpression): TypeReference {

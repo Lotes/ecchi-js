@@ -2,10 +2,15 @@ grammar Ecchi
 
 entry Model:
   userDeclaration=UserDeclaration
+  environmentDeclaration=EnvironmentDeclaration?
   (elements+=Element)*;
 
 UserDeclaration:
   'use' type=[ConceptDefinition:ID] 'as' 'user'
+;
+
+EnvironmentDeclaration:
+  'use' type=[ConceptDefinition:ID] 'as' 'environment'
 ;
 
 Element: ConceptDefinition | SubjectDefinition | RoleDefinition;
@@ -18,12 +23,12 @@ ConceptDefinition:
 SubjectDefinition:
   'subject' name=ID 'of' type=[ConceptDefinition:ID] '{'
         members+=ActionMember*
-    '}';
+  '}';
 
 RoleDefinition:
   'role' name=ID '{'
         members+=ForMember*
-    '}'
+  '}'
 ;
 
 ForMember:
@@ -104,7 +109,7 @@ Term infers Expression:
 
 Primary infers Expression: {infer Parentheses} '(' expr=Expression ')'
     | Literal
-    | {infer RootMember}(isSubjectRoot?='subject'|'user')
+    | {infer RootMember}(isSubject?='subject'|isUser?='user'|isEnvironment?='environment')
     | {infer TypeOfExpression} 'typeof' type=[ConceptDefinition:ID]
 ;
 

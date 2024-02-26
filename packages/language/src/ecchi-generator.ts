@@ -56,8 +56,7 @@ ${this.generateSubjectActions(model.elements.filter(isSubjectDefinition))}
       children
     };
   }
-  generateSubjectActions(members: SubjectDefinition[]) {
-    const subjects = members;
+  generateSubjectActions(subjects: SubjectDefinition[]) {
     return `export const $SubjectActions = {
   ${subjects.map(subject => {
     const { children, parents } = this.getSubjectActions(subject);
