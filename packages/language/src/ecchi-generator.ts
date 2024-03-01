@@ -91,6 +91,7 @@ export type $Types = {
       case 'NumberType': return 'number';
       case 'NullType': return 'null';
       case 'StringType': return 'string';
+      case 'ArrayType': return `${this.generateTypeReference(type.type)}[]`;
       case 'ConceptReference': return type.type.ref!.name;
       default: assertUnreachable(type);
     }

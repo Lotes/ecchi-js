@@ -246,6 +246,12 @@ function renderConditionsAndRules(
         const operandIndex = renderExpression(expression.expr);
         const type = expression.type.ref!;
         return conditions.is(operandIndex, type);
+      case "ArrayMemberAccess":
+        const receiverIndex = renderExpression(expression.receiver);
+        const index = renderExpression(expression.expr);
+        return conditions.arrayAt(receiverIndex, index);
+      default:
+        assertUnreachable(expression);
     }
   }
 

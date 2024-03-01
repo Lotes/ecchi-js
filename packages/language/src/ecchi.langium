@@ -67,6 +67,7 @@ TypeReference:
   | {infer NullType}'null'
   | {infer StringType}'string'
   | {infer BooleanType}'boolean'
+  | {infer ArrayType}'array' '<' type=TypeReference '>'
 ;
 
 Expression infers Expression:
@@ -109,9 +110,9 @@ Unary infers Expression:
 
 Term infers Expression:
   Primary (
-        {infer PropertyMemberAccess.receiver=current} '.' member=[PropertyMember:ID]
-//TODO:        | {infer ArrayMemberAccess.receiver=current} '[' expr=Expression ']'
-    )*
+      {infer PropertyMemberAccess.receiver=current} '.' member=[PropertyMember:ID]
+    | {infer ArrayMemberAccess.receiver=current} '[' expr=Expression ']'
+  )*
 ;
 
 Primary infers Expression: {infer Parentheses} '(' expr=Expression ')'
