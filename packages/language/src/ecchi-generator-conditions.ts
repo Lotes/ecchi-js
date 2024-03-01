@@ -78,7 +78,7 @@ const binaryTypes: Record<BinaryExpression['op'], (lhs: TypeReference, rhs: Type
   '%': (lhs, rhs) => Types.Number(),
   '&&': (lhs, rhs) => Types.Boolean(),
   '*': (lhs, rhs) => Types.Number(),
-  '+': (lhs, rhs) => Types.Number(),
+  '+': (lhs, rhs) => lhs.$type === "StringType" ? Types.String() : Types.Number(),
   '-': (lhs, rhs) => Types.Number(),
   '/': (lhs, rhs) => Types.Number(),
   '<': (lhs, rhs) => Types.Boolean(),

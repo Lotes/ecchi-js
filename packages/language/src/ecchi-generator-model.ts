@@ -1,5 +1,5 @@
 import { NestedSetElement } from "@ecchi-js/core";
-import { ActionMember, ConceptDefinition, Model, PermissionStatement, RoleDefinition, Statement, SubjectDefinition, WhenStatement, isConceptDefinition, isPermissionStatement, isRoleDefinition, isSelectEverthing, isSubjectDefinition, isWhenStatement } from "./generated/ast.js";
+import { ActionMember, ConceptDefinition, Expression, Model, PermissionStatement, RoleDefinition, Statement, SubjectDefinition, WhenStatement, isConceptDefinition, isPermissionStatement, isRoleDefinition, isSelectEverthing, isSubjectDefinition, isWhenStatement } from "./generated/ast.js";
 import { assertUnreachable } from "langium";
 import { ExpressionBuilder, ExpressionBuilderFactory, ExpressionBuilderFactoryImpl } from "./ecchi-generator-conditions.js";
 
@@ -37,6 +37,7 @@ export interface RoleData {
 
 export interface AccessRule {
   action:  ActionMember;
+  condition: number;
   mode: "allow"|"forbid";
 }
 
@@ -190,13 +191,64 @@ function renderConditionsAndRules(
     }
   }
 
-  function renderWhenStatement(statement: WhenStatement) {
-    statement.condition
-    statement.thenBlock
-    statement.alternative?.when;
-    statement.alternative?.elseBlock;
-    return [];
+  function renderStatements(statements: Statement[]): AccessRule[] {
+    return statements.flatMap(statement => renderStatement(statement, subject));
   }
+
+  function andWith(condition: number, rules: AccessRule[]): AccessRule[] {
+    return rules.map(rule => ({
+      ...rule,
+      condition: conditions.binary('&&', rule.condition, condition) 
+    }));
+  }
+
+  function renderWhenStatement(statement: WhenStatement): AccessRule[] {
+    const condtionId = renderExpression(statement.condition);
+    const $then = andWith(condtionId, renderStatements(statement.thenBlock.statements));
+    let $else: AccessRule[] = []
+    if(statement.alternative) {
+      const notExpressionId = conditions.unary('!', condtionId);
+      if(statement.alternative.when) {
+        $else = renderWhenStatement(statement.alternative.when);
+      } else {
+        $else = renderStatements(statement.alternative.elseBlock!.statements);
+      }
+      $else = andWith(notExpressionId, $else);
+    }
+    return [...$then, ...$else];
+  }
+
+  function renderExpression(expression: Expression): number {
+    switch (expression.$type) {
+      case "BinaryExpression":
+        const lhs = renderExpression(expression.left);
+        const rhs = renderExpression(expression.right);
+        return conditions.binary(expression.op, lhs, rhs);
+      case "BooleanLiteral":
+        return conditions.boolean(expression.value);
+      case "NullLiteral":
+        return conditions.null();
+      case "NumberLiteral":
+        return conditions.number(expression.value);
+      case "Parentheses":
+        return renderExpression(expression.expr);
+      case "StringLiteral":
+        return conditions.string(expression.value);
+      case "UnaryExpression":
+        const operand = renderExpression(expression.operand);
+        return conditions.unary(expression.op, operand);
+      case "PropertyMemberAccess":
+        const receiver = renderExpression(expression.receiver);
+        return conditions.property(receiver, expression.member.ref!.name);
+      case "RootMember":
+        return conditions.builtIn(expression.kind);
+      case "IsExpression":
+        const operandIndex = renderExpression(expression.expr);
+        const type = expression.type.ref!;
+        return conditions.is(operandIndex, type);
+    }
+  }
+
 
   function renderPermissionStatement(statement: PermissionStatement, subject: SubjectData): AccessRule[] {
     const mode = statement.allows ? "allow" : "forbid";
