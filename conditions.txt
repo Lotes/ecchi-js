@@ -1,0 +1,90 @@
+import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";
+
+interface User {
+  $type: "User";
+  id: number;
+  name: string;
+}
+interface Product {
+  $type: "Product";
+  id: number;
+  name: string;
+  price: number;
+}
+
+export type $Types = {
+  User: User,
+  Product: Product,
+}
+export const $Reflection = new Reflection<$Types>({
+  User: [0,  1],
+  Product: [2,  3],
+});
+export type $UserType = User;
+
+export function Admin(user: $UserType) {
+  return {
+    difficult: (subject: Product): [boolean, 'allow'|'forbid', string[]][] => {
+      function condition(user: $UserType, subject: Product, index: 1|2|7|8|9|10|11|12|16|17): boolean {
+        const expressions = [
+          (): null => null,
+          (): boolean => true,
+          (): boolean => false,
+          (): User => user,
+          (): number => expressions[3]().id,
+          (): number => 1,
+          (): number => -expressions[5](),
+          (): boolean => expressions[4]() == expressions[6](),
+          (): boolean => expressions[1]() && expressions[7](),
+          (): boolean => $Reflection.isSubTypeOf(expressions[3]().$type, 'Product'),
+          (): boolean => expressions[1]() && expressions[9](),
+          (): boolean => !expressions[9](),
+          (): boolean => expressions[1]() && expressions[11](),
+          (): Product => subject,
+          (): string => expressions[13]().name,
+          (): string => "test",
+          (): boolean => expressions[14]() == expressions[15](),
+          (): boolean => expressions[1]() && expressions[16]()
+        ] as const;
+        return condition[index];
+      }
+  
+      return [
+        
+      ];
+    },
+    simple: (subject: Product): [boolean, 'allow'|'forbid', string[]][] => {
+      function condition(user: $UserType, subject: Product, index: 1|2|7|8|9|10|11|12|16|17): boolean {
+        const expressions = [
+          (): null => null,
+          (): boolean => true,
+          (): boolean => false,
+          (): User => user,
+          (): number => expressions[3]().id,
+          (): number => 1,
+          (): number => -expressions[5](),
+          (): boolean => expressions[4]() == expressions[6](),
+          (): boolean => expressions[1]() && expressions[7](),
+          (): boolean => $Reflection.isSubTypeOf(expressions[3]().$type, 'Product'),
+          (): boolean => expressions[1]() && expressions[9](),
+          (): boolean => !expressions[9](),
+          (): boolean => expressions[1]() && expressions[11](),
+          (): Product => subject,
+          (): string => expressions[13]().name,
+          (): string => "test",
+          (): boolean => expressions[14]() == expressions[15](),
+          (): boolean => expressions[1]() && expressions[16]()
+        ] as const;
+        return condition[index];
+      }
+  
+      return [
+        [condition(user, subject, 1), 'allow', ['aaa']],
+        [condition(user, subject, 8), 'allow', ['bbb']],
+        [condition(user, subject, 10), 'allow', ['ccc', 'bbb']],
+        [condition(user, subject, 12), 'forbid', ['ccc']],
+        [condition(user, subject, 17), 'allow', ['ccc']]
+      ];
+    }
+  }
+}

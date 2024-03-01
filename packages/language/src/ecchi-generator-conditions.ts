@@ -23,10 +23,6 @@ interface BuiltInOperand extends OpcodeBase {
   op: 'built-in';
   object: 'user'|'environment'|'subject';
 }
-interface CallOperand extends OpcodeBase {
-  op: 'call';
-  index: number;
-}
 interface GetPropertyOpcode extends OpcodeBase {
   op: 'get-property';
   receiverOperandIndex: number
@@ -66,7 +62,6 @@ const opKeys: OpcodeKeys = {
   'number': ['value'],
   'null': [],
   'built-in': ['object'],
-  'call': ['index'],
   'get-property': ['receiverOperandIndex', 'property'],
   'array-get': ['receiverOperandIndex', 'indexOperandIndex'],
   'binary': ['operator', 'leftOperandIndex', 'rightOperandIndex'],
@@ -113,7 +108,6 @@ export type Opcode =
   | NumberOperand
   | NullOperand
   | BuiltInOperand
-  | CallOperand
   | GetPropertyOpcode
   | ArrayGetOpcode
   | BinaryOpcode
@@ -141,7 +135,7 @@ export interface ExpressionBuilder {
   is(operandIndex: number, type: ConceptDefinition): number;
 }
 
-type OpcodeElement = {
+export type OpcodeElement = {
   index: number;
   code: Opcode;
   type: TypeReference;
@@ -150,7 +144,7 @@ type OpcodeElement = {
 
 export class ExpressionBuilderFactoryImpl implements ExpressionBuilderFactory {
   private readonly byHashCode = new Map<number, OpcodeElement[]>();
-  private readonly elements: OpcodeElement[] = [];
+  public readonly elements: OpcodeElement[] = [];
   constructor(private readonly environment: ConceptDefinition|undefined, private readonly user: ConceptDefinition){
   }
   forSubject(subject: ConceptDefinition): ExpressionBuilder {
@@ -221,7 +215,7 @@ export class ExpressionBuilderImpl implements ExpressionBuilder {
     return this.findOrInsert({ op: 'unary', operator, operandIndex }, unaryTypes[operator](operand));
   }
   is(operandIndex: number, type: ConceptDefinition): number {
-    return this.findOrInsert({ op: 'is', type: type.$type, operandIndex }, Types.Boolean());
+    return this.findOrInsert({ op: 'is', type: type.name, operandIndex }, Types.Boolean());
   }
   private findOrInsert(opcode: Opcode, type: TypeReference): number {
     const code = opcodeHashCode(opcode);

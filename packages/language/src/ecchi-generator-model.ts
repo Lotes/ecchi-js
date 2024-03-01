@@ -1,7 +1,7 @@
 import { NestedSetElement } from "@ecchi-js/core";
 import { ActionMember, ConceptDefinition, Expression, Model, PermissionStatement, RoleDefinition, Statement, SubjectDefinition, WhenStatement, isConceptDefinition, isPermissionStatement, isRoleDefinition, isSelectEverthing, isSubjectDefinition, isWhenStatement } from "./generated/ast.js";
 import { assertUnreachable } from "langium";
-import { ExpressionBuilder, ExpressionBuilderFactory, ExpressionBuilderFactoryImpl } from "./ecchi-generator-conditions.js";
+import { ExpressionBuilder, ExpressionBuilderFactoryImpl, OpcodeElement } from "./ecchi-generator-conditions.js";
 
 export type ConceptMap = Map<ConceptDefinition, ConceptData>;
 export type SubjectMap = Map<SubjectDefinition, SubjectData>;
@@ -31,12 +31,12 @@ export interface SubjectData {
 export type SubjectRules = Map<SubjectDefinition, AccessRule[]>;
 
 export interface RoleData {
-  expressions: ExpressionBuilderFactory;
+  expressions: OpcodeElement[];
   rules: SubjectRules;
 }
 
 export interface AccessRule {
-  action:  ActionMember;
+  actions: ActionMember[];
   condition: number;
   mode: "allow"|"forbid";
 }
@@ -59,14 +59,14 @@ function getRoles(model: Model, environment: ConceptDefinition|undefined, user: 
   for (const role of model.elements.filter(isRoleDefinition)) {
     const rules = new Map<SubjectDefinition, AccessRule[]>();
     const expressions = new ExpressionBuilderFactoryImpl(environment, user);
-    for (const member of role.members.filter(m => isSubjectDefinition(m.subject))) {
+    for (const member of role.members) {
       const subjectData = subjects.get(member.subject.ref!)!;
       const conditions = expressions.forSubject(member.subject.ref!.type.ref!);
       const rendered = member.members.flatMap(m => renderConditionsAndRules(subjectData, m, conditions, rules));
       rules.set(member.subject.ref!, rendered);
     }
     map.set(role, {
-      expressions,
+      expressions: expressions.elements,
       rules
     });
   }
@@ -255,16 +255,15 @@ function renderConditionsAndRules(
     }
   }
 
-
   function renderPermissionStatement(statement: PermissionStatement, subject: SubjectData): AccessRule[] {
     const mode = statement.allows ? "allow" : "forbid";
     const actions = isSelectEverthing(statement.actions)
       ? [...subject.hierarchy.keys()]
       : statement.actions.actions.map(e => e.action.ref).filter(e => e !== undefined) as ActionMember[];
-    return actions.map(action => ({
-      action,
+    return [{
+      actions,
       condition: conditions.true(),
       mode
-    }));
+    }];
   }
 }
