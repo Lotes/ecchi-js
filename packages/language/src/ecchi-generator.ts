@@ -1,10 +1,9 @@
 import { URI, assertUnreachable } from "langium";
 import { EcchiServices, createEcchiServices } from "./ecchi-module.js";
 import { ConceptDefinition, Model, SubjectDefinition, TypeReference } from "./generated/ast.js";
-import { NestedSetElement } from "@ecchi-js/core";
 import { EmptyFileSystem } from "langium";
 import { readFile } from "fs/promises";
-import { SubjectData, Tree, buildDomain } from "./ecchi-model.js";
+import { ConceptMap, SubjectData, buildGeneratorModel } from "./ecchi-generator-model.js";
 
 export async function generate(fileName: string) {
   const services = createEcchiServices(EmptyFileSystem);
@@ -29,26 +28,26 @@ export class EcchiGenerator {
     }
   }
   private generateFromModel(model: Model) {
-    const { concepts, user, subjects } = buildDomain(model);
+    const { concepts, user, subjects } = buildGeneratorModel(model);
     const typescript = `${this.generateImports()}
 
-${this.generateTypes(concepts.instances, concepts.map)}
+${this.generateTypes(concepts)}
 
-${this.generateReflection(concepts.instances, concepts.hierarchy)}
+${this.generateReflection(concepts)}
 
 ${this.generateUser(user)}
 
-${this.generateSubjectActions(subjects.instances, subjects.map)}
+${this.generateSubjectActions(subjects)}
 `;
     return typescript;
   }
   generateUser(user: ConceptDefinition | undefined) {
     return `export type $UserType = ${user?.name};`;
   }
-  generateSubjectActions(instances: SubjectDefinition[], map: Map<string, SubjectData>) {
+  generateSubjectActions(map: Map<SubjectDefinition, SubjectData>) {
     return `export const $SubjectActions = {
-  ${instances.map(subject => {
-    const {parents, hierarchy: nestedSets, instances} = map.get(subject.name)!;
+  ${[...map.keys()].map(subject => {
+    const {parents, hierarchy: nestedSets, instances} = map.get(subject)!;
     const type = [...parents.keys()].map(a => `'${a}'`).join('|');
     return `${subject.name}: ["${subject.type?.ref?.name}", new SubjectActions<${type}>({
     ${[...instances.entries()].map(([action, tree], index) => {
@@ -60,21 +59,20 @@ ${this.generateSubjectActions(subjects.instances, subjects.map)}
 } satisfies SubjectActionsBase<$Types>;    
 `;
   }
-  private generateReflection(concepts: ConceptDefinition[], nestedSets: Map<ConceptDefinition, NestedSetElement>) {
+  private generateReflection(concepts: ConceptMap) {
     return `export const $Reflection = new Reflection<$Types>({
-  ${concepts.map(concept => {
-  const set = nestedSets.get(concept)!;
+  ${[...concepts.entries()].map(([concept, {nestedSet: set}]) => {
   return `${concept.name}: [${set[0]},  ${set[1]}],`
 }).join('\n  ')}
 });`;
   }
 
-  public generateTypes(concepts: ConceptDefinition[], trees: Map<string, Tree<ConceptDefinition>>) {
+  public generateTypes(concepts: ConceptMap) {
     function visit(concept: ConceptDefinition) {
-      const subTypes: string = trees.get(concept.name)!.children.map(c => visit(c.content)).join('|');
+      const subTypes: string = concepts.get(concept)!.children.map(visit).join('|');
       return `"${concept.name}"${subTypes.length > 0 ? `|${subTypes}` : ''}`;
     }
-    return concepts.map(type => { 
+    return [...concepts.keys()].map((type) => { 
       return `interface ${type.name}${type.superConcept ? ` extends ${type.superConcept.ref?.name}` : ''} {
   $type: ${visit(type)};
   ${type.members.map(member => `${member.name}: ${this.generateTypeReference(member.type)};`).join('\n  ')}
@@ -82,7 +80,7 @@ ${this.generateSubjectActions(subjects.instances, subjects.map)}
 }).join('\n')+`
 
 export type $Types = {
-  ${concepts.map(type => {
+  ${[...concepts.keys()].map(type => {
   return `${type.name}: ${type.name},`;
 }).join('\n  ')}
 }`;

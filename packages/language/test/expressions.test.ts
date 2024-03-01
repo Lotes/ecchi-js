@@ -1,6 +1,6 @@
 import { describe, beforeAll } from "vitest";
 import { EcchiServices } from "../src/ecchi-module.js";
-import { buildDomain } from "../src/ecchi-model.js";
+import { buildGeneratorModel } from "../src/ecchi-generator-model.js";
 import { parseHelper } from "langium/test";
 import { Model } from "../src/generated/ast.js";
 
@@ -19,6 +19,6 @@ export function getModelFactory(services: EcchiServices) {
   const parse = parseHelper<Model>(services);
   return async (content: string) => {
     const document = await parse(content);
-    return buildDomain(document.parseResult.value);
+    return buildGeneratorModel(document.parseResult.value);
   };
 }

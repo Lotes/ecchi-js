@@ -37,9 +37,11 @@ ForMember:
   '}'
 ;
 
-WhenStatement: 'when' expression=Expression '{' permissions+=Statement* '}' alternative=OtherwiseStatement?;
+StatementBlock: '{' statements+=Statement* '}';
 
-OtherwiseStatement: 'otherwise' (when=WhenStatement | '{' permissions+=Statement* '}');
+WhenStatement: 'when' condition=Expression thenBlock=StatementBlock alternative=OtherwiseStatement?;
+
+OtherwiseStatement: 'otherwise' (when=WhenStatement | elseBlock=StatementBlock);
 
 PermissionStatement: (allows?='allow'|'forbid') actions=PermissionActions;
 
@@ -96,7 +98,7 @@ Addition infers Expression:
 ;
 
 Unary infers Expression:
-  {infer UnaryExpression}op=('!'|'-'|'+') expression=Unary
+  {infer UnaryExpression}op=('!'|'-'|'+') operand=Unary
     | Term
 ;
 
