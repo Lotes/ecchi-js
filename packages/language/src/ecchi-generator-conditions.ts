@@ -1,5 +1,5 @@
 import { Types } from "./ecchi-infer-type.js";
-import { BinaryExpression, UnaryExpression, ConceptDefinition, TypeReference, isConceptReference } from "./generated/ast.js";
+import { isArrayType, BinaryExpression, UnaryExpression, ConceptDefinition, TypeReference, isConceptReference, isNumberType } from "./generated/ast.js";
 
 interface OpcodeBase {
   op: string;
@@ -68,6 +68,18 @@ const opKeys: OpcodeKeys = {
   'unary': ['operator', 'operandIndex'],
   'is': ['type', 'operandIndex'],
 };
+const subjectKeys: OpcodeKeys = {
+  'boolean': [],
+  'string': [],
+  'number': [],
+  'null': [],
+  'built-in': [],
+  'get-property': ['receiverOperandIndex'],
+  'array-get': ['receiverOperandIndex', 'indexOperandIndex'],
+  'binary': ['leftOperandIndex', 'rightOperandIndex'],
+  'unary': ['operandIndex'],
+  'is': ['operandIndex'],
+};
 const binaryTypes: Record<BinaryExpression['op'], (lhs: TypeReference, rhs: TypeReference) => TypeReference> = {
   '!=': (lhs, rhs) => Types.Boolean(),
   '%': (lhs, rhs) => Types.Number(),
@@ -97,10 +109,12 @@ function opcodeHashCode(opcode: Opcode): number {
     return a & a;
   }, 0);
 }
+
 function opcodeEquals(a: Opcode, b: Opcode): boolean {
   const keys = ['op', ...opKeys[a.op]] as OpcodeProperties<typeof a.op>[];
   return keys.every(k => a[k] === b[k]);
 }
+
 
 export type Opcode =
   | BooleanOperand
@@ -141,14 +155,16 @@ export type OpcodeElement = {
   type: TypeReference;
 }
 
+//Dummy element to avoid 0 index
+const Dummy: OpcodeElement = { code: { op: 'null' }, index: 0, type: Types.Null() };
 
 export class ExpressionBuilderFactoryImpl implements ExpressionBuilderFactory {
   private readonly byHashCode = new Map<number, OpcodeElement[]>();
-  public readonly elements: OpcodeElement[] = [];
+  public readonly commonElements: OpcodeElement[] = [Dummy];
   constructor(private readonly environment: ConceptDefinition|undefined, private readonly user: ConceptDefinition){
   }
-  forSubject(subject: ConceptDefinition): ExpressionBuilder {
-    return new ExpressionBuilderImpl(this.byHashCode, this.elements, this.environment, this.user, subject);
+  forSubject(subject: ConceptDefinition): ExpressionBuilderImpl {
+    return new ExpressionBuilderImpl(this.byHashCode, this.commonElements, this.environment, this.user, subject);
   }
 }
 
@@ -158,7 +174,14 @@ export class ExpressionBuilderImpl implements ExpressionBuilder {
     environment: ConceptDefinition|undefined;
     subject: ConceptDefinition;
   };
-  constructor(private byHashCode: Map<number, OpcodeElement[]>, private elements: OpcodeElement[], environment: ConceptDefinition|undefined, user: ConceptDefinition, subject: ConceptDefinition){
+  readonly subjectElements: OpcodeElement[] = [Dummy];
+  constructor(
+    private byHashCode: Map<number, OpcodeElement[]>,
+    private commonElements: OpcodeElement[],
+    environment: ConceptDefinition|undefined,
+    user: ConceptDefinition,
+    subject: ConceptDefinition
+  ){
     this.null();
     this.true();
     this.false();
@@ -192,7 +215,7 @@ export class ExpressionBuilderImpl implements ExpressionBuilder {
     return this.findOrInsert({ op: 'built-in', object: kind }, Types.Object(definition));
   }
   property(receiverOperandIndex: number, prop: string): number {
-    const receiver = this.elements[receiverOperandIndex].type;
+    const receiver = this.getElement(receiverOperandIndex).type;
     if(!isConceptReference(receiver) || !receiver.type.ref) {
       throw new Error('Receiver is not a concept reference!');
     }
@@ -203,19 +226,43 @@ export class ExpressionBuilderImpl implements ExpressionBuilder {
     return this.findOrInsert({ op: 'get-property', receiverOperandIndex, property: prop }, property.type);
   }
   arrayAt(receiverOperandIndex: number, indexOperandIndex: number): number {
-    throw new Error("Method not implemented.");
+    const receiver = this.getElement(receiverOperandIndex).type;
+    if(!isArrayType(receiver)) {
+      throw new Error('Receiver is not a array type!');
+    }
+    const index = this.getElement(indexOperandIndex).type;
+    if(!isNumberType(index)) {
+      throw new Error('Index is not a number type!');
+    }
+    return this.findOrInsert({
+      op: 'array-get',
+      receiverOperandIndex,
+      indexOperandIndex
+    }, receiver.type);
   }
-  binary(operator: BinaryExpression['op'], leftOperandIndex: number, rigthOperandIndex: number): number {
-    const lhs = this.elements[leftOperandIndex].type;
-    const rhs = this.elements[rigthOperandIndex].type;
-    return this.findOrInsert({ op: 'binary', operator, leftOperandIndex, rightOperandIndex: rigthOperandIndex }, binaryTypes[operator](lhs, rhs));
+  binary(operator: BinaryExpression['op'], leftOperandIndex: number, rightOperandIndex: number): number {
+    const lhs = this.getElement(leftOperandIndex).type;
+    const rhs = this.getElement(rightOperandIndex).type;
+    return this.findOrInsert({ op: 'binary', operator, leftOperandIndex, rightOperandIndex: rightOperandIndex }, binaryTypes[operator](lhs, rhs));
   }
   unary(operator: "+" | "-" | "!", operandIndex: number): number {
-    const operand = this.elements[operandIndex].type;
+    const operand = this.getElement(operandIndex).type;
     return this.findOrInsert({ op: 'unary', operator, operandIndex }, unaryTypes[operator](operand));
   }
   is(operandIndex: number, type: ConceptDefinition): number {
     return this.findOrInsert({ op: 'is', type: type.name, operandIndex }, Types.Boolean());
+  }
+  private getElement(index: number): OpcodeElement {
+    if(index < 0) {
+      return this.subjectElements[-index];
+    } else {
+      return this.commonElements[index];
+    }
+  }
+  private isSubjectDependent(opcode: Opcode): boolean {
+    const keys = subjectKeys[opcode.op] as OpcodeProperties<typeof opcode.op>[];
+    return (opcode.op === "built-in" && opcode.object === "subject") 
+      || keys.some(k => opcode[k] as unknown as number < 0);
   }
   private findOrInsert(opcode: Opcode, type: TypeReference): number {
     const code = opcodeHashCode(opcode);
@@ -229,10 +276,12 @@ export class ExpressionBuilderImpl implements ExpressionBuilder {
         return element.index;
       }
     }
-    const index = this.elements.length;
+    const isSubject = this.isSubjectDependent(opcode);
+    const elements = isSubject ? this.subjectElements : this.commonElements;
+    const index = isSubject ? -elements.length : elements.length;
     const element = { index, code: opcode, type };
     list.push(element);
-    this.elements.push(element);
+    elements.push(element);
     return index;
   }
 }

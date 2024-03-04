@@ -14,6 +14,7 @@ import {
   SubjectData,
   buildGeneratorModel,
 } from "./ecchi-generator-model.js";
+import { OpcodeElement } from "./ecchi-generator-conditions.js";
 
 export async function generate(fileName: string) {
   const services = createEcchiServices(EmptyFileSystem);
@@ -89,73 +90,28 @@ ${this.generateReflection(pkg.concepts)}
 ${this.generateUser(pkg.user)}
 
 export function ${role.name}(user: $UserType) {
+  const commonExpressions = [
+    ${data.expressions.map(e => this.generateExpression(e)).join(",\n    ")}
+  ] as const;
   return {
     ${role.members
       .map((member) => {
         const subjectName = member.subject.ref!.name;
-        const booleanIndices = data.expressions
-          .map((e, index) => [e.type.$type, index] as const)
-          .filter((e) => e[0] === "BooleanType")
-          .map((e) => e[1])
-          .join("|");
+        const subjectRules = data.rules.get(member.subject.ref!)!;
         const subjectType = member.subject.ref!.type.ref!.name;
         return `${subjectName}: (subject: ${subjectType}): [boolean, 'allow'|'forbid', string[]][] => {
-      function condition(user: $UserType, subject: ${subjectType}, index: ${booleanIndices}): boolean {
-        const expressions = [
-          ${data.expressions
-          .map((expression) => {
-            let code = "";
-            const op = expression.code;
-            switch (op.op) {
-              case "null":
-                code = `null`;
-                break;
-              case "boolean":
-                code = `${op.value}`;
-                break;
-              case "built-in":
-                code = `${op.object}`;
-                break;
-              case "binary":
-                code = `expressions[${op.leftOperandIndex}]() ${op.operator} expressions[${op.rightOperandIndex}]()`;
-                break;
-              case "string":
-                code = `"${op.value.replaceAll('"', '\\"')}"`;
-                break;
-              case "number":
-                code = `${op.value}`;
-                break;
-              case "unary":
-                code = `${op.operator}expressions[${op.operandIndex}]()`;
-                break;
-              case "get-property":
-                code = `expressions[${op.receiverOperandIndex}]().${op.property}`;
-                break;
-              case "is":
-                code = `$Reflection.isSubTypeOf(expressions[${op.operandIndex}]().$type, '${op.type}')`;
-                break;
-              case "array-get":
-                code = `expressions[${op.receiverOperandIndex}]()[expressions[${op.indexOperandIndex}]()]`;
-                break;
-              default:
-                assertUnreachable(op);
-            }
-            const type = this.toJSType(expression.type);
-            return `(): ${type} => ${code}`;
-          })
-          .join(",\n          ")}
-        ] as const;
-        return condition[index];
-      }
+      const subjectExpressions = [
+        ${subjectRules.expressions.map(e => this.generateExpression(e)).join(",\n        ")}
+      ] as const;
   
       return [
-        ${[...data.rules.get(member.subject.ref!)!]
+        ${[...subjectRules.rules]
           .map((action) => {
-            return `[condition(user, subject, ${action.condition}), '${
+            return `[${action.condition <  0? `subjectExpressions[${-action.condition}]` :  `commonExpressions[${action.condition}]`}(), '${
               action.mode
-          }', [${action.actions.map((e) => `'${e.name}'`).join(", ")}]]`;
-        })
-        .join(",\n        ")}
+            }', [${action.actions.map((e) => `'${e.name}'`).join(", ")}]]`;
+          })
+          .join(",\n        ")}
       ];
     }`;
       })
@@ -164,6 +120,51 @@ export function ${role.name}(user: $UserType) {
 }`;
       })
       .join(",\n    ");
+  }
+  generateExpression(expression: OpcodeElement): string {
+    let code = "";
+    const op = expression.code;
+    function get(operandIndex: number) {
+      return operandIndex > 0 
+        ? `commonExpressions[${operandIndex}]()`
+        : `subjectExpressions[${-operandIndex}]()`;
+    }
+    switch (op.op) {
+      case "null":
+        code = `null`;
+        break;
+      case "boolean":
+        code = `${op.value}`;
+        break;
+      case "built-in":
+        code = `${op.object}`;
+        break;
+      case "binary":
+        code = `${get(op.leftOperandIndex)} ${op.operator} ${get(op.rightOperandIndex)}`;
+        break;
+      case "string":
+        code = `"${op.value.replaceAll('"', '\\"')}"`;
+        break;
+      case "number":
+        code = `${op.value}`;
+        break;
+      case "unary":
+        code = `${op.operator}${get(op.operandIndex)}`;
+        break;
+      case "get-property":
+        code = `${get(op.receiverOperandIndex)}.${op.property}`;
+        break;
+      case "is":
+        code = `$Reflection.isSubTypeOf(${get(op.operandIndex)}.$type, '${op.type}')`;
+        break;
+      case "array-get":
+        code = `${get(op.receiverOperandIndex)}[${get(op.indexOperandIndex)}]`;
+        break;
+      default:
+        assertUnreachable(op);
+    }
+    const type = this.toJSType(expression.type);
+    return `(): ${type} => ${code}`;
   }
   generateUser(user: ConceptDefinition | undefined) {
     return `export type $UserType = ${user?.name};`;

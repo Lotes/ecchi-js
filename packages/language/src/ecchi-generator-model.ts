@@ -28,8 +28,10 @@ export interface SubjectData {
   parents: Map<string, string|undefined>;
 }
 
-export type SubjectRules = Map<SubjectDefinition, AccessRule[]>;
-
+export type SubjectRules = Map<SubjectDefinition, {
+  expressions: OpcodeElement[];
+  rules: AccessRule[];
+}>;
 export interface RoleData {
   expressions: OpcodeElement[];
   rules: SubjectRules;
@@ -57,16 +59,22 @@ export function buildGeneratorModel(model: Model): EcchiGeneratorModel {
 function getRoles(model: Model, environment: ConceptDefinition|undefined, user: ConceptDefinition, subjects: SubjectMap): RoleMap {
   const map = new Map<RoleDefinition, RoleData>();
   for (const role of model.elements.filter(isRoleDefinition)) {
-    const rules = new Map<SubjectDefinition, AccessRule[]>();
+    const rules = new Map<SubjectDefinition, {
+      expressions: OpcodeElement[];
+      rules: AccessRule[];
+    }>();
     const expressions = new ExpressionBuilderFactoryImpl(environment, user);
     for (const member of role.members) {
       const subjectData = subjects.get(member.subject.ref!)!;
       const conditions = expressions.forSubject(member.subject.ref!.type.ref!);
-      const rendered = member.members.flatMap(m => renderConditionsAndRules(subjectData, m, conditions, rules));
-      rules.set(member.subject.ref!, rendered);
+      const rendered = member.members.flatMap(m => renderConditionsAndRules(subjectData, m, conditions));
+      rules.set(member.subject.ref!, {
+        expressions: conditions.subjectElements,
+        rules: rendered,
+      });
     }
     map.set(role, {
-      expressions: expressions.elements,
+      expressions: expressions.commonElements,
       rules
     });
   }
@@ -176,8 +184,7 @@ function getHierarchy<K, V>(map: Map<K, Tree<V>>, getParent: (child: V) => K|und
 function renderConditionsAndRules(
   subject: SubjectData,
   statement: Statement,
-  conditions: ExpressionBuilder,
-  rules: Map<SubjectDefinition, AccessRule[]>
+  conditions: ExpressionBuilder
 ): AccessRule[] {
   return renderStatement(statement, subject);
 
