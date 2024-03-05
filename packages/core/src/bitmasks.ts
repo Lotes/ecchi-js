@@ -1,4 +1,13 @@
 export class Bitmask<S> {
+  public static or<S>(...masks: Bitmask<S>[]) {
+    const result = new Bitmask(masks[0].map);
+    for (const mask of masks) {
+      for (let index = 0; index < mask.mask.length; index++) {
+        result.mask[index] |= mask.mask[index];
+      }
+    }
+    return result;
+  }
   private readonly mask: Uint8Array;
   constructor(private readonly map: Map<S, {byteIndex: number, bitIndex: number}>) {
     this.mask = new Uint8Array(Math.ceil(map.size/8));

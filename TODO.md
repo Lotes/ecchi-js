@@ -1,8 +1,11 @@
 # TODO
 ## `language` package
+### generated code
+- [ ] cache sub expressions
+- [ ] improve type generation with discriminated unions 
+
 ### generator-conditions
 - [x] make common and subject table
-- [ ] make subject- and action-aware, not just concept-aware
 
 ### generator-model
 - [ ] propagate type assertion

@@ -68,7 +68,8 @@ export class EcchiGenerator {
         assertUnreachable(type);
     }
   }
-  async generate({ concepts, user, subjects }: EcchiGeneratorModel) {
+  async generate(model: EcchiGeneratorModel) {
+    const { concepts, user, subjects } = model;
     return `${this.generateImports()}
 
 ${this.generateTypes(concepts)}
@@ -78,18 +79,14 @@ ${this.generateReflection(concepts)}
 ${this.generateUser(user)}
 
 ${this.generateSubjectActions(subjects)}
+
+${this.generateRoles(model)}
 `;
   }
-  generateConditions(pkg: EcchiGeneratorModel): string {
+  generateRoles(pkg: EcchiGeneratorModel): string {
     return [...pkg.roles.entries()]
       .map(([role, data]) => {
-        return `${this.generateImports()}
-
-${this.generateTypes(pkg.concepts)}
-${this.generateReflection(pkg.concepts)}
-${this.generateUser(pkg.user)}
-
-export function ${role.name}(user: $UserType) {
+        return `export function ${role.name}(user: $UserType) {
   const commonExpressions = [
     ${data.expressions.map(e => this.generateExpression(e)).join(",\n    ")}
   ] as const;
@@ -97,9 +94,10 @@ export function ${role.name}(user: $UserType) {
     ${role.members
       .map((member) => {
         const subjectName = member.subject.ref!.name;
+        const subjectActions = member.subject.ref?.members.map((a) => `'${a.name}'`).join("|");
         const subjectRules = data.rules.get(member.subject.ref!)!;
         const subjectType = member.subject.ref!.type.ref!.name;
-        return `${subjectName}: (subject: ${subjectType}): [boolean, 'allow'|'forbid', string[]][] => {
+        return `${subjectName}: (subject: ${subjectType}): [boolean, 'allow'|'forbid', Bitmask<${subjectActions}>][] => {
       const subjectExpressions = [
         ${subjectRules.expressions.map(e => this.generateExpression(e)).join(",\n        ")}
       ] as const;
@@ -109,7 +107,7 @@ export function ${role.name}(user: $UserType) {
           .map((action) => {
             return `[${action.condition <  0? `subjectExpressions[${-action.condition}]` :  `commonExpressions[${action.condition}]`}(), '${
               action.mode
-            }', [${action.actions.map((e) => `'${e.name}'`).join(", ")}]]`;
+            }', $SubjectActions.${subjectName}[1].createMask('${action.mode}', ${action.actions.map((e) => `'${e.name}'`).join(", ")})]`;
           })
           .join(",\n        ")}
       ];
@@ -253,6 +251,6 @@ export type $Types = {
     }
   }
   private generateImports() {
-    return `import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";`;
+    return `import { Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";`;
   }
 }

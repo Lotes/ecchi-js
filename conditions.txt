@@ -1,4 +1,4 @@
-import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";
+import { Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";
 
 interface User {
   $type: "User";
@@ -16,11 +16,27 @@ export type $Types = {
   User: User,
   Product: Product,
 }
+
 export const $Reflection = new Reflection<$Types>({
   User: [0,  1],
   Product: [2,  3],
 });
+
 export type $UserType = User;
+
+export const $SubjectActions = {
+  simple: ["Product", new SubjectActions<'aaa'|'bbb'|'ccc'>({
+    aaa: [[0, 1],  0],
+    bbb: [[2, 3],  1],
+    ccc: [[4, 5],  2]
+  })],
+  difficult: ["Product", new SubjectActions<'aaa'|'bbb'|'ccc'>({
+    aaa: [[0, 1],  0],
+    bbb: [[2, 3],  1],
+    ccc: [[4, 5],  2]
+  })]
+} satisfies SubjectActionsBase<$Types>;    
+
 
 export function Admin(user: $UserType) {
   const commonExpressions = [
@@ -41,7 +57,7 @@ export function Admin(user: $UserType) {
     (): string => "test"
   ] as const;
   return {
-    difficult: (subject: Product): [boolean, 'allow'|'forbid', string[]][] => {
+    difficult: (subject: Product): [boolean, 'allow'|'forbid', Bitmask<'aaa'|'bbb'|'ccc'>][] => {
       const subjectExpressions = [
         (): null => null
       ] as const;
@@ -50,7 +66,7 @@ export function Admin(user: $UserType) {
         
       ];
     },
-    simple: (subject: Product): [boolean, 'allow'|'forbid', string[]][] => {
+    simple: (subject: Product): [boolean, 'allow'|'forbid', Bitmask<'aaa'|'bbb'|'ccc'>][] => {
       const subjectExpressions = [
         (): null => null,
         (): Product => subject,
@@ -60,11 +76,11 @@ export function Admin(user: $UserType) {
       ] as const;
   
       return [
-        [commonExpressions[2](), 'allow', ['aaa']],
-        [commonExpressions[9](), 'allow', ['bbb']],
-        [commonExpressions[11](), 'allow', ['ccc', 'bbb']],
-        [commonExpressions[13](), 'forbid', ['ccc']],
-        [subjectExpressions[4](), 'allow', ['ccc']]
+        [commonExpressions[2](), 'allow', $SubjectActions.simple[1].createMask('allow', 'aaa')],
+        [commonExpressions[9](), 'allow', $SubjectActions.simple[1].createMask('allow', 'bbb')],
+        [commonExpressions[11](), 'allow', $SubjectActions.simple[1].createMask('allow', 'ccc', 'bbb')],
+        [commonExpressions[13](), 'forbid', $SubjectActions.simple[1].createMask('forbid', 'ccc')],
+        [subjectExpressions[4](), 'allow', $SubjectActions.simple[1].createMask('allow', 'ccc')]
       ];
     }
   }

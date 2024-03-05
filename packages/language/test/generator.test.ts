@@ -24,7 +24,7 @@ describe("ecchi-generator", async () => {
     const content = await readFile(join(__dirname, "..", "..", "..", "resources", "Conditions.ecchi"), "utf-8");
     const model = await generator.parse(content);
     const pkg = await generator.build(model);
-    const result = await generator.generateConditions(pkg);
+    const result = await generator.generate(pkg);
     writeFile("conditions.txt", result);
   });
 });
