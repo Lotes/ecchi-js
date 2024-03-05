@@ -3,8 +3,16 @@
   "description": "Ecchi.js language",
   "version": "0.0.1",
   "type": "module",
-  "exports": "./out/src/ecchi-generator.js",
-  "types": "./out/src/ecchi-generator.d.ts",
+  "exports": {
+    ".": {
+      "import": "./out/src/ecchi-generator.js",
+      "types": "./out/src/ecchi-generator.d.ts"
+    },
+    "./lsp": {
+      "import": "./out/src/main.js",
+      "types": "./out/src/main.d.ts"
+    } 
+  },
   "files": [
     "out",
     "src"

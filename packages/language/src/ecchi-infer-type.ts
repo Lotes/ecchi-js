@@ -1,5 +1,5 @@
 import { AstNode, assertUnreachable, getContainerOfType } from "langium";
-import { BinaryExpression, ConceptDefinition, Expression, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isForMember, isModel } from "./generated/ast.js";
+import { ArrayMemberAccess, BinaryExpression, ConceptDefinition, Expression, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isForMember, isModel, isStringType } from "./generated/ast.js";
 
 export class TypeInferenceError<N extends AstNode> extends Error {
   constructor(message: string, public expression: N, public property: Exclude<keyof N, `$${string}`>) {
@@ -8,6 +8,7 @@ export class TypeInferenceError<N extends AstNode> extends Error {
 }
 
 export const Types = {
+  Array: (type: TypeReference): TypeReference => ({ $type: 'ArrayType', type, $container: undefined! }),
   Boolean: (): TypeReference => ({ $type: 'BooleanType', $container: undefined! }),
   Null: (): TypeReference => ({ $type: 'NullType', $container: undefined! }),
   Number: (): TypeReference => ({ $type: 'NumberType', $container: undefined! }),
@@ -33,10 +34,19 @@ export function inferType(expression: Expression): TypeReference {
     case "StringLiteral": return Types.String();
     case "UnaryExpression": return inferUnaryExpression(expression);
     case "BinaryExpression": return inferBinaryExpression(expression);
-    case "TypeOfExpression": return Types.String();
+    case "IsExpression": return Types.Boolean();
+    case "ArrayMemberAccess": return inferArrayMemberAccess(expression);
     default:
       assertUnreachable(expression);
   }
+}
+
+function inferArrayMemberAccess(expression: ArrayMemberAccess) {
+  const receiverType = inferType(expression.receiver);
+  if(receiverType.$type !== 'ArrayType') {
+    throw new TypeInferenceError('Receiver is not an array.', expression, 'receiver');
+  }
+  return receiverType.type;
 }
 
 function inferPropertyMemberAccess(expression: PropertyMemberAccess) {
@@ -57,25 +67,25 @@ function inferPropertyMemberAccess(expression: PropertyMemberAccess) {
 }
 
 function inferRootMember(expression: RootMember): TypeReference {
-  if(expression.isSubject) {
+  if(expression.kind === 'subject') {
     const forMember = getContainerOfType(expression, isForMember)!;
     const subjectType = forMember?.subject.ref?.type.ref;
     if(!subjectType) {
-      throw new TypeInferenceError('Unknown subject type.', expression, 'isSubject');
+      throw new TypeInferenceError('Unknown subject type.', expression, 'kind');
     }
     return Types.Object(subjectType);
-  } else if(expression.isUser) {
+  } else if(expression.kind === 'user') {
     const model = getContainerOfType(expression, isModel)!;
     const userType = model.userDeclaration.type.ref;
     if(!userType) {
-      throw new TypeInferenceError('Unknown user type.', expression, 'isUser');
+      throw new TypeInferenceError('Unknown user type.', expression, 'kind');
     }
     return Types.Object(userType);
-  } else if(expression.isEnvironment) {
+  } else if(expression.kind === 'environment') {
     const model = getContainerOfType(expression, isModel)!;
     const environmentType = model.environmentDeclaration?.type.ref;
     if(!environmentType) {
-      throw new TypeInferenceError('Unknown environment type.', expression, 'isEnvironment');
+      throw new TypeInferenceError('Unknown environment type.', expression, 'kind');
     }
     return Types.Object(environmentType);
   } else {
@@ -94,8 +104,14 @@ function inferUnaryExpression(expression: UnaryExpression): TypeReference {
 type BinaryOpInferer = (left: TypeReference, right: TypeReference) => TypeReference;
 
 const BinaryExpressionTypeMap: Record<BinaryExpression['op'], BinaryOpInferer> = {
+  "in": function (left: TypeReference, right: TypeReference): TypeReference {
+    return Types.Boolean();
+  },
   "+": function (left: TypeReference, right: TypeReference): TypeReference {
-    throw new Error("Function not implemented.");
+    if(isStringType(left) || isStringType(right)) {
+      return Types.String();
+    }
+    return Types.Number();
   },
   "-": function (left: TypeReference, right: TypeReference): TypeReference {
     return Types.Number();

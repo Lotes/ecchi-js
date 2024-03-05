@@ -1,0 +1,153 @@
+use Member as user
+use Environment as environment
+
+concept Member { 
+  id: number;
+  name: string;
+  email: string;
+  moderatorFor: array<Forum>;
+  memberFor: array<Forum>;
+}
+
+concept Environment {
+  owner: Member;
+}
+
+concept Forum {
+  id: number;
+  name: string;
+  tags: array<string>;
+  description: string;
+}
+
+concept Topic {
+  id: number;
+  title: string;
+  forum: Forum;
+  author: Member;
+}
+
+concept Post {
+  id: number;
+  title: string;
+  content: string;
+  author: Member;
+  createdAt: number;
+  topic: Topic;
+}
+
+subject member of Member {
+  action update
+  action show_profile
+  action follow_member
+  action subscribe_forum
+}
+
+subject forum of Forum {
+  action create
+  action read
+  action update
+  action delete
+}
+subject topic of Topic {
+  action create
+  action read
+  action update
+  action delete
+}
+subject post of Post {
+  action create
+  action read
+  action update
+  action delete
+}
+
+role admin {
+  for member {
+    allow *
+  }
+  for forum {
+    allow *
+  }
+  for topic {
+    allow *
+  }
+  for post {
+    allow *
+  }
+}
+
+role moderator {
+  for member {
+    when user == subject {
+      allow update follow_member subscribe_forum
+    }
+    allow show_profile
+  }
+  for forum {
+    when subject in user.memberFor {
+      allow read
+    }
+    when subject in user.moderatorFor {
+      allow create delete update
+    }
+  }
+  for topic {
+    when subject.forum in user.moderatorFor {
+      allow create read update delete
+    }
+  }
+  for post {
+    when subject.topic.forum in user.moderatorFor {
+      allow create read delete update
+    }
+  }
+}
+
+role registered {
+  for member {
+    when user == subject {
+      allow update follow_member subscribe_forum
+    }
+    allow show_profile
+  }
+  for forum {
+    when subject in user.memberFor {
+      allow read
+    }
+  }
+  for topic {
+    when subject.forum in user.memberFor {
+      allow create read
+    }
+    when subject.author == user {
+      allow update
+    }
+  }
+  for post {
+    when subject.topic.forum in user.memberFor {
+      allow create read
+    }
+    when subject.author == user {
+      allow delete update
+    }
+  }
+}
+
+role guest {
+  for member {
+    forbid *
+  }
+  for forum {
+    allow read
+    forbid create delete update
+  }
+  for topic {
+    allow read
+    forbid create delete update
+  }
+  for post {
+    allow read
+    forbid create delete update
+  }
+}

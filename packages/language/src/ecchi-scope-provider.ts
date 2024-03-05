@@ -31,7 +31,7 @@ export class EcchiScopeProvider extends DefaultScopeProvider {
       referenceInfo.container as AstNodeTypesWithCrossReferences<EcchiAstType>;
     const referenceType = this.reflection.getReferenceType(referenceInfo);
     switch (container.$type) {
-      case "TypeOfExpression":
+      case "IsExpression":
         return this.createScopeFromNodes(
           getContainerOfType(container, isModel)!.elements.filter(
             isConceptDefinition

@@ -37,9 +37,11 @@ ForMember:
   '}'
 ;
 
-WhenStatement: 'when' expression=Expression '{' permissions+=Statement* '}' alternative=OtherwiseStatement?;
+StatementBlock: '{' statements+=Statement* '}';
 
-OtherwiseStatement: 'otherwise' (when=WhenStatement | '{' permissions+=Statement* '}');
+WhenStatement: 'when' condition=Expression thenBlock=StatementBlock alternative=OtherwiseStatement?;
+
+OtherwiseStatement: 'otherwise' (when=WhenStatement | elseBlock=StatementBlock);
 
 PermissionStatement: (allows?='allow'|'forbid') actions=PermissionActions;
 
@@ -65,6 +67,7 @@ TypeReference:
   | {infer NullType}'null'
   | {infer StringType}'string'
   | {infer BooleanType}'boolean'
+  | {infer ArrayType}'array' '<' type=TypeReference '>'
 ;
 
 Expression infers Expression:
@@ -84,39 +87,44 @@ Equal infers Expression:
 ;
 
 Relation infers Expression:
-  Multiply ({infer BinaryExpression.left=current} op=('<='|'>='|'<'|'>') right=Multiply)*
+  Addition ({infer BinaryExpression.left=current} op=('<='|'>='|'<'|'>') right=Addition)*
+;
+
+
+Addition infers Expression:
+  Multiply ({infer BinaryExpression.left=current} op=('+'|'-') right=Multiply)*
 ;
 
 Multiply infers Expression:
-  Addition ({infer BinaryExpression.left=current} op=('/'|'*'|'%') right=Addition)*
+  Is ({infer BinaryExpression.left=current} op=('/'|'*'|'%') right=Is)*
 ;
 
-Addition infers Expression:
-  Unary ({infer BinaryExpression.left=current} op=('+'|'-') right=Unary)*
-;
+Is infers Expression:
+  {infer IsExpression}expr=Unary 'is' type=[ConceptDefinition:ID]
+  | Unary
+  ;
 
 Unary infers Expression:
-  {infer UnaryExpression}op=('!'|'-'|'+') expression=Unary
-    | Term
+  {infer UnaryExpression}op=('!'|'-'|'+') operand=Unary
+  | Term ({infer BinaryExpression.left=current}op='in' right=Term)*
 ;
 
 Term infers Expression:
   Primary (
-        {infer PropertyMemberAccess.receiver=current} '.' member=[PropertyMember:ID]
-//TODO:        | {infer ArrayMemberAccess.receiver=current} '[' expr=Expression ']'
-    )*
+      {infer PropertyMemberAccess.receiver=current} '.' member=[PropertyMember:ID]
+    | {infer ArrayMemberAccess.receiver=current} '[' expr=Expression ']'
+  )*
 ;
 
 Primary infers Expression: {infer Parentheses} '(' expr=Expression ')'
     | Literal
-    | {infer RootMember}(isSubject?='subject'|isUser?='user'|isEnvironment?='environment')
-    | {infer TypeOfExpression} 'typeof' type=[ConceptDefinition:ID]
+    | {infer RootMember}kind=('subject'|'user'|'environment')
 ;
 
 Literal infers Expression:
   {infer NumberLiteral}value=NUMBER
     | {infer StringLiteral}value=STRING
-    | {infer BooleanLiteral}value=('true'|'false')
+    | {infer BooleanLiteral}(value?='true'|'false')
     | {infer NullLiteral}value='null'
 ;
 

@@ -83,4 +83,4 @@ As a result, this library is about protecting the private parts of your applicat
 
 ## License
 
-MIT 2024 by Markus Rudolph
+[MIT](LICENSE.md)
