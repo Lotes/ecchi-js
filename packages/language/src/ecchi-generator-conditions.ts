@@ -94,6 +94,7 @@ const binaryTypes: Record<BinaryExpression['op'], (lhs: TypeReference, rhs: Type
   '>': (lhs, rhs) => Types.Boolean(),
   '>=': (lhs, rhs) => Types.Boolean(),
   '||': (lhs, rhs) => Types.Boolean(),
+  'in': (lhs, rhs) => Types.Boolean(),
 };
 const unaryTypes: Record<UnaryExpression['op'], (operand: TypeReference) => TypeReference> = {
   '!': (operand) => Types.Boolean(),

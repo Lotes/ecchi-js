@@ -99,13 +99,14 @@ Multiply infers Expression:
   Is ({infer BinaryExpression.left=current} op=('/'|'*'|'%') right=Is)*
 ;
 
-Is infers Expression: {infer IsExpression}expr=Unary 'is' type=[ConceptDefinition:ID]
+Is infers Expression:
+  {infer IsExpression}expr=Unary 'is' type=[ConceptDefinition:ID]
   | Unary
   ;
 
 Unary infers Expression:
   {infer UnaryExpression}op=('!'|'-'|'+') operand=Unary
-    | Term
+  | Term ({infer BinaryExpression.left=current}op='in' right=Term)*
 ;
 
 Term infers Expression:

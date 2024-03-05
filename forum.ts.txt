@@ -1,0 +1,134 @@
+import { Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";
+
+interface UserType {
+  $type: "UserType";
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+interface ArticleType {
+  $type: "ArticleType";
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: UserType;
+  published: boolean;
+}
+interface CommentType {
+  $type: "CommentType";
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: UserType;
+  article: ArticleType;
+  published: boolean;
+}
+interface A {
+  $type: "A"|"B";
+  
+}
+interface B extends A {
+  $type: "B";
+  
+}
+
+export type $Types = {
+  UserType: UserType,
+  ArticleType: ArticleType,
+  CommentType: CommentType,
+  A: A,
+  B: B,
+}
+
+export const $Reflection = new Reflection<$Types>({
+  UserType: [0,  1],
+  ArticleType: [2,  3],
+  CommentType: [4,  5],
+  A: [6,  9],
+  B: [7,  8],
+});
+
+export type $UserType = UserType;
+
+export const $SubjectActions = {
+  Article: ["ArticleType", new SubjectActions<'create'|'read'|'edit'|'archive'|'publish'|'delete'>({
+    create: [[0, 1],  0],
+    read: [[2, 11],  1],
+    edit: [[3, 10],  2],
+    archive: [[4, 7],  3],
+    publish: [[8, 9],  4],
+    delete: [[5, 6],  5]
+  })],
+  Comment: ["CommentType", new SubjectActions<'read'|'answer'|'edit'|'archive'|'delete'|'publish'>({
+    read: [[0, 11],  0],
+    answer: [[1, 2],  1],
+    edit: [[3, 10],  2],
+    archive: [[4, 7],  3],
+    delete: [[5, 6],  4],
+    publish: [[8, 9],  5]
+  })]
+} satisfies SubjectActionsBase<$Types>;    
+
+
+export function AdminUser(user: $UserType) {
+  const commonExpressions = [
+    (): null => null,
+    (): null => null,
+    (): boolean => true,
+    (): boolean => false
+  ] as const;
+  return {
+    Article: (subject: ArticleType): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'edit'|'archive'|'publish'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'allow', $SubjectActions.Article[1].createMask('allow', 'create', 'delete', 'archive', 'publish', 'edit', 'read')]
+      ];
+    },
+    Comment: (subject: CommentType): [boolean, 'allow'|'forbid', Bitmask<'read'|'answer'|'edit'|'archive'|'delete'|'publish'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'allow', $SubjectActions.Comment[1].createMask('allow', 'answer', 'delete', 'archive', 'publish', 'edit', 'read')]
+      ];
+    }
+  }
+},
+    export function NormalUser(user: $UserType) {
+  const commonExpressions = [
+    (): null => null,
+    (): null => null,
+    (): boolean => true,
+    (): boolean => false,
+    (): UserType => user,
+    (): number => commonExpressions[4]().id
+  ] as const;
+  return {
+    Article: (subject: ArticleType): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'edit'|'archive'|'publish'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): ArticleType => subject,
+        (): UserType => subjectExpressions[1]().author,
+        (): number => subjectExpressions[2]().id,
+        (): boolean => commonExpressions[5]() == subjectExpressions[3](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[4](),
+        (): boolean => !subjectExpressions[4](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[6]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[5](), 'allow', $SubjectActions.Article[1].createMask('allow', 'archive')],
+        [subjectExpressions[7](), 'allow', $SubjectActions.Article[1].createMask('allow', 'read')]
+      ];
+    }
+  }
+}

@@ -20,11 +20,11 @@ describe("ecchi-generator", async () => {
     expect(result).toMatchSnapshot();
   });
 
-  test.only("conditions", async () => {
-    const content = await readFile(join(__dirname, "..", "..", "..", "resources", "Conditions.ecchi"), "utf-8");
+  test.only("forum", async () => {
+    const content = await readFile(join(__dirname, "..", "..", "..", "resources", "Forum.ecchi"), "utf-8");
     const model = await generator.parse(content);
     const pkg = await generator.build(model);
     const result = await generator.generate(pkg);
-    writeFile("conditions.txt", result);
+    writeFile("forum.ts.txt", result);
   });
 });

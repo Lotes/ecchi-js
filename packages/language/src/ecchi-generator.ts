@@ -138,7 +138,11 @@ ${this.generateRoles(model)}
         code = `${op.object}`;
         break;
       case "binary":
-        code = `${get(op.leftOperandIndex)} ${op.operator} ${get(op.rightOperandIndex)}`;
+        if(op.operator === 'in') {
+          code = `${get(op.rightOperandIndex)}.includes(${get(op.leftOperandIndex)})`;
+        } else {
+          code = `${get(op.leftOperandIndex)} ${op.operator} ${get(op.rightOperandIndex)}`;
+        }
         break;
       case "string":
         code = `"${op.value.replaceAll('"', '\\"')}"`;

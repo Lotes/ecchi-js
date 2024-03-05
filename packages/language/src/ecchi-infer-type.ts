@@ -104,6 +104,9 @@ function inferUnaryExpression(expression: UnaryExpression): TypeReference {
 type BinaryOpInferer = (left: TypeReference, right: TypeReference) => TypeReference;
 
 const BinaryExpressionTypeMap: Record<BinaryExpression['op'], BinaryOpInferer> = {
+  "in": function (left: TypeReference, right: TypeReference): TypeReference {
+    return Types.Boolean();
+  },
   "+": function (left: TypeReference, right: TypeReference): TypeReference {
     throw new Error("Function not implemented.");
   },
