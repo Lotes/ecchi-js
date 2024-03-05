@@ -1,81 +1,88 @@
 import { Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";
 
-interface UserType {
-  $type: "UserType";
+interface Member {
+  $type: "Member";
   id: number;
   name: string;
   email: string;
-  createdAt: string;
-  updatedAt: string;
+  moderatorFor: Forum[];
+  memberFor: Forum[];
 }
-interface ArticleType {
-  $type: "ArticleType";
+interface Environment {
+  $type: "Environment";
+  owner: Member;
+}
+interface Forum {
+  $type: "Forum";
+  id: number;
+  name: string;
+  tags: string[];
+  description: string;
+}
+interface Topic {
+  $type: "Topic";
+  id: number;
+  title: string;
+  forum: Forum;
+  author: Member;
+}
+interface Post {
+  $type: "Post";
   id: number;
   title: string;
   content: string;
-  createdAt: string;
-  updatedAt: string;
-  author: UserType;
-  published: boolean;
-}
-interface CommentType {
-  $type: "CommentType";
-  id: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  author: UserType;
-  article: ArticleType;
-  published: boolean;
-}
-interface A {
-  $type: "A"|"B";
-  
-}
-interface B extends A {
-  $type: "B";
-  
+  author: Member;
+  createdAt: number;
+  topic: Topic;
 }
 
 export type $Types = {
-  UserType: UserType,
-  ArticleType: ArticleType,
-  CommentType: CommentType,
-  A: A,
-  B: B,
+  Member: Member,
+  Environment: Environment,
+  Forum: Forum,
+  Topic: Topic,
+  Post: Post,
 }
 
 export const $Reflection = new Reflection<$Types>({
-  UserType: [0,  1],
-  ArticleType: [2,  3],
-  CommentType: [4,  5],
-  A: [6,  9],
-  B: [7,  8],
+  Member: [0,  1],
+  Environment: [2,  3],
+  Forum: [4,  5],
+  Topic: [6,  7],
+  Post: [8,  9],
 });
 
-export type $UserType = UserType;
+export type $UserType = Member;
 
 export const $SubjectActions = {
-  Article: ["ArticleType", new SubjectActions<'create'|'read'|'edit'|'archive'|'publish'|'delete'>({
-    create: [[0, 1],  0],
-    read: [[2, 11],  1],
-    edit: [[3, 10],  2],
-    archive: [[4, 7],  3],
-    publish: [[8, 9],  4],
-    delete: [[5, 6],  5]
+  member: ["Member", new SubjectActions<'update'|'show_profile'|'follow_member'|'subscribe_forum'>({
+    update: [[0, 1],  0],
+    show_profile: [[2, 3],  1],
+    follow_member: [[4, 5],  2],
+    subscribe_forum: [[6, 7],  3]
   })],
-  Comment: ["CommentType", new SubjectActions<'read'|'answer'|'edit'|'archive'|'delete'|'publish'>({
-    read: [[0, 11],  0],
-    answer: [[1, 2],  1],
-    edit: [[3, 10],  2],
-    archive: [[4, 7],  3],
-    delete: [[5, 6],  4],
-    publish: [[8, 9],  5]
+  forum: ["Forum", new SubjectActions<'create'|'read'|'update'|'delete'>({
+    create: [[0, 1],  0],
+    read: [[2, 3],  1],
+    update: [[4, 5],  2],
+    delete: [[6, 7],  3]
+  })],
+  topic: ["Topic", new SubjectActions<'create'|'read'|'update'|'delete'>({
+    create: [[0, 1],  0],
+    read: [[2, 3],  1],
+    update: [[4, 5],  2],
+    delete: [[6, 7],  3]
+  })],
+  post: ["Post", new SubjectActions<'create'|'read'|'update'|'delete'>({
+    create: [[0, 1],  0],
+    read: [[2, 3],  1],
+    update: [[4, 5],  2],
+    delete: [[6, 7],  3]
   })]
 } satisfies SubjectActionsBase<$Types>;    
 
 
-export function AdminUser(user: $UserType) {
+export function admin(user: $UserType) {
   const commonExpressions = [
     (): null => null,
     (): null => null,
@@ -83,51 +90,229 @@ export function AdminUser(user: $UserType) {
     (): boolean => false
   ] as const;
   return {
-    Article: (subject: ArticleType): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'edit'|'archive'|'publish'|'delete'>][] => {
+    member: (subject: Member): [boolean, 'allow'|'forbid', Bitmask<'update'|'show_profile'|'follow_member'|'subscribe_forum'>][] => {
       const subjectExpressions = [
         (): null => null
       ] as const;
   
       return [
-        [commonExpressions[2](), 'allow', $SubjectActions.Article[1].createMask('allow', 'create', 'delete', 'archive', 'publish', 'edit', 'read')]
+        [commonExpressions[2](), 'allow', $SubjectActions.member[1].createMask('allow', 'update', 'show_profile', 'follow_member', 'subscribe_forum')]
       ];
     },
-    Comment: (subject: CommentType): [boolean, 'allow'|'forbid', Bitmask<'read'|'answer'|'edit'|'archive'|'delete'|'publish'>][] => {
+    forum: (subject: Forum): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
       const subjectExpressions = [
         (): null => null
       ] as const;
   
       return [
-        [commonExpressions[2](), 'allow', $SubjectActions.Comment[1].createMask('allow', 'answer', 'delete', 'archive', 'publish', 'edit', 'read')]
+        [commonExpressions[2](), 'allow', $SubjectActions.forum[1].createMask('allow', 'create', 'read', 'update', 'delete')]
+      ];
+    },
+    topic: (subject: Topic): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'allow', $SubjectActions.topic[1].createMask('allow', 'create', 'read', 'update', 'delete')]
+      ];
+    },
+    post: (subject: Post): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'allow', $SubjectActions.post[1].createMask('allow', 'create', 'read', 'update', 'delete')]
       ];
     }
   }
-},
-    export function NormalUser(user: $UserType) {
+}
+export function moderator(user: $UserType) {
   const commonExpressions = [
     (): null => null,
     (): null => null,
     (): boolean => true,
     (): boolean => false,
-    (): UserType => user,
-    (): number => commonExpressions[4]().id
+    (): Member => user,
+    (): Forum[] => commonExpressions[4]().memberFor,
+    (): Forum[] => commonExpressions[4]().moderatorFor
   ] as const;
   return {
-    Article: (subject: ArticleType): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'edit'|'archive'|'publish'|'delete'>][] => {
+    member: (subject: Member): [boolean, 'allow'|'forbid', Bitmask<'update'|'show_profile'|'follow_member'|'subscribe_forum'>][] => {
       const subjectExpressions = [
         (): null => null,
-        (): ArticleType => subject,
-        (): UserType => subjectExpressions[1]().author,
-        (): number => subjectExpressions[2]().id,
-        (): boolean => commonExpressions[5]() == subjectExpressions[3](),
-        (): boolean => commonExpressions[2]() && subjectExpressions[4](),
-        (): boolean => !subjectExpressions[4](),
+        (): Member => subject,
+        (): boolean => commonExpressions[4]() == subjectExpressions[1](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[2]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[3](), 'allow', $SubjectActions.member[1].createMask('allow', 'update', 'follow_member', 'subscribe_forum')],
+        [commonExpressions[2](), 'allow', $SubjectActions.member[1].createMask('allow', 'show_profile')]
+      ];
+    },
+    forum: (subject: Forum): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): Forum => subject,
+        (): boolean => commonExpressions[5]().includes(subjectExpressions[1]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[2](),
+        (): boolean => commonExpressions[6]().includes(subjectExpressions[1]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[4]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[3](), 'allow', $SubjectActions.forum[1].createMask('allow', 'read')],
+        [subjectExpressions[5](), 'allow', $SubjectActions.forum[1].createMask('allow', 'create', 'delete', 'update')]
+      ];
+    },
+    topic: (subject: Topic): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): Topic => subject,
+        (): Forum => subjectExpressions[1]().forum,
+        (): boolean => commonExpressions[6]().includes(subjectExpressions[2]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[3]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[4](), 'allow', $SubjectActions.topic[1].createMask('allow', 'create', 'read', 'update', 'delete')]
+      ];
+    },
+    post: (subject: Post): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): Post => subject,
+        (): Topic => subjectExpressions[1]().topic,
+        (): Forum => subjectExpressions[2]().forum,
+        (): boolean => commonExpressions[6]().includes(subjectExpressions[3]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[4]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[5](), 'allow', $SubjectActions.post[1].createMask('allow', 'create', 'read', 'delete', 'update')]
+      ];
+    }
+  }
+}
+export function registered(user: $UserType) {
+  const commonExpressions = [
+    (): null => null,
+    (): null => null,
+    (): boolean => true,
+    (): boolean => false,
+    (): Member => user,
+    (): Forum[] => commonExpressions[4]().memberFor
+  ] as const;
+  return {
+    member: (subject: Member): [boolean, 'allow'|'forbid', Bitmask<'update'|'show_profile'|'follow_member'|'subscribe_forum'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): Member => subject,
+        (): boolean => commonExpressions[4]() == subjectExpressions[1](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[2]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[3](), 'allow', $SubjectActions.member[1].createMask('allow', 'update', 'follow_member', 'subscribe_forum')],
+        [commonExpressions[2](), 'allow', $SubjectActions.member[1].createMask('allow', 'show_profile')]
+      ];
+    },
+    forum: (subject: Forum): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): Forum => subject,
+        (): boolean => commonExpressions[5]().includes(subjectExpressions[1]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[2]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[3](), 'allow', $SubjectActions.forum[1].createMask('allow', 'read')]
+      ];
+    },
+    topic: (subject: Topic): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): Topic => subject,
+        (): Forum => subjectExpressions[1]().forum,
+        (): boolean => commonExpressions[5]().includes(subjectExpressions[2]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[3](),
+        (): Member => subjectExpressions[1]().author,
+        (): boolean => subjectExpressions[5]() == commonExpressions[4](),
         (): boolean => commonExpressions[2]() && subjectExpressions[6]()
       ] as const;
   
       return [
-        [subjectExpressions[5](), 'allow', $SubjectActions.Article[1].createMask('allow', 'archive')],
-        [subjectExpressions[7](), 'allow', $SubjectActions.Article[1].createMask('allow', 'read')]
+        [subjectExpressions[4](), 'allow', $SubjectActions.topic[1].createMask('allow', 'create', 'read')],
+        [subjectExpressions[7](), 'allow', $SubjectActions.topic[1].createMask('allow', 'update')]
+      ];
+    },
+    post: (subject: Post): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null,
+        (): Post => subject,
+        (): Topic => subjectExpressions[1]().topic,
+        (): Forum => subjectExpressions[2]().forum,
+        (): boolean => commonExpressions[5]().includes(subjectExpressions[3]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[4](),
+        (): Member => subjectExpressions[1]().author,
+        (): boolean => subjectExpressions[6]() == commonExpressions[4](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[7]()
+      ] as const;
+  
+      return [
+        [subjectExpressions[5](), 'allow', $SubjectActions.post[1].createMask('allow', 'create', 'read')],
+        [subjectExpressions[8](), 'allow', $SubjectActions.post[1].createMask('allow', 'delete', 'update')]
+      ];
+    }
+  }
+}
+export function guest(user: $UserType) {
+  const commonExpressions = [
+    (): null => null,
+    (): null => null,
+    (): boolean => true,
+    (): boolean => false
+  ] as const;
+  return {
+    member: (subject: Member): [boolean, 'allow'|'forbid', Bitmask<'update'|'show_profile'|'follow_member'|'subscribe_forum'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'forbid', $SubjectActions.member[1].createMask('forbid', 'update', 'show_profile', 'follow_member', 'subscribe_forum')]
+      ];
+    },
+    forum: (subject: Forum): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'allow', $SubjectActions.forum[1].createMask('allow', 'read')],
+        [commonExpressions[2](), 'forbid', $SubjectActions.forum[1].createMask('forbid', 'create', 'delete', 'update')]
+      ];
+    },
+    topic: (subject: Topic): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'allow', $SubjectActions.topic[1].createMask('allow', 'read')],
+        [commonExpressions[2](), 'forbid', $SubjectActions.topic[1].createMask('forbid', 'create', 'delete', 'update')]
+      ];
+    },
+    post: (subject: Post): [boolean, 'allow'|'forbid', Bitmask<'create'|'read'|'update'|'delete'>][] => {
+      const subjectExpressions = [
+        (): null => null
+      ] as const;
+  
+      return [
+        [commonExpressions[2](), 'allow', $SubjectActions.post[1].createMask('allow', 'read')],
+        [commonExpressions[2](), 'forbid', $SubjectActions.post[1].createMask('forbid', 'create', 'delete', 'update')]
       ];
     }
   }

@@ -1,5 +1,5 @@
 import { AstNode, assertUnreachable, getContainerOfType } from "langium";
-import { ArrayMemberAccess, BinaryExpression, ConceptDefinition, Expression, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isForMember, isModel } from "./generated/ast.js";
+import { ArrayMemberAccess, BinaryExpression, ConceptDefinition, Expression, PropertyMemberAccess, RootMember, TypeReference, UnaryExpression, isForMember, isModel, isStringType } from "./generated/ast.js";
 
 export class TypeInferenceError<N extends AstNode> extends Error {
   constructor(message: string, public expression: N, public property: Exclude<keyof N, `$${string}`>) {
@@ -108,7 +108,10 @@ const BinaryExpressionTypeMap: Record<BinaryExpression['op'], BinaryOpInferer> =
     return Types.Boolean();
   },
   "+": function (left: TypeReference, right: TypeReference): TypeReference {
-    throw new Error("Function not implemented.");
+    if(isStringType(left) || isStringType(right)) {
+      return Types.String();
+    }
+    return Types.Number();
   },
   "-": function (left: TypeReference, right: TypeReference): TypeReference {
     return Types.Number();

@@ -175,9 +175,10 @@ export class ExpressionBuilderImpl implements ExpressionBuilder {
     environment: ConceptDefinition|undefined;
     subject: ConceptDefinition;
   };
+  private readonly subjectOpcodes = new Map<number, OpcodeElement[]>();
   readonly subjectElements: OpcodeElement[] = [Dummy];
   constructor(
-    private byHashCode: Map<number, OpcodeElement[]>,
+    private commonOpcodes: Map<number, OpcodeElement[]>,
     private commonElements: OpcodeElement[],
     environment: ConceptDefinition|undefined,
     user: ConceptDefinition,
@@ -267,17 +268,18 @@ export class ExpressionBuilderImpl implements ExpressionBuilder {
   }
   private findOrInsert(opcode: Opcode, type: TypeReference): number {
     const code = opcodeHashCode(opcode);
-    let list = this.byHashCode.get(code);
+    const isSubject = this.isSubjectDependent(opcode);
+    const opcodes = isSubject ? this.subjectOpcodes : this.commonOpcodes;
+    let list = opcodes.get(code);
     if (!list) {
       list = [];
-      this.byHashCode.set(code, list);
+      opcodes.set(code, list);
     }
     for (const element of list) {
       if (opcodeEquals(element.code, opcode)) {
         return element.index;
       }
     }
-    const isSubject = this.isSubjectDependent(opcode);
     const elements = isSubject ? this.subjectElements : this.commonElements;
     const index = isSubject ? -elements.length : elements.length;
     const element = { index, code: opcode, type };

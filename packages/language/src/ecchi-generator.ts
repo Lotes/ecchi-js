@@ -117,7 +117,7 @@ ${this.generateRoles(model)}
   }
 }`;
       })
-      .join(",\n    ");
+      .join("\n");
   }
   generateExpression(expression: OpcodeElement): string {
     let code = "";
