@@ -70,6 +70,8 @@ export class EcchiGenerator {
   }
   async generate(model: EcchiGeneratorModel) {
     const { concepts, user, subjects } = model;
+    //${this.generateSubjectActions(subjects)}
+    //${this.generateRoles(model)}
     return `${this.generateImports()}
 
 ${this.generateTypes(concepts)}
@@ -78,47 +80,62 @@ ${this.generateReflection(concepts)}
 
 ${this.generateUser(user)}
 
-${this.generateSubjectActions(subjects)}
-
-${this.generateRoles(model)}
+${this.generatePermissions(model)}
 `;
   }
-  generateRoles(pkg: EcchiGeneratorModel): string {
-    return [...pkg.roles.entries()]
-      .map(([role, data]) => {
-        return `export function ${role.name}(user: $UserType) {
-  const commonExpressions = [
-    ${data.expressions.map(e => this.generateExpression(e)).join(",\n    ")}
-  ] as const;
-  return {
-    ${role.members
-      .map((member) => {
-        const subjectName = member.subject.ref!.name;
-        const subjectActions = member.subject.ref?.members.map((a) => `'${a.name}'`).join("|");
-        const subjectRules = data.rules.get(member.subject.ref!)!;
-        const subjectType = member.subject.ref!.type.ref!.name;
-        return `${subjectName}: (subject: ${subjectType}): [boolean, 'allow'|'forbid', Bitmask<${subjectActions}>][] => {
-      const subjectExpressions = [
-        ${subjectRules.expressions.map(e => this.generateExpression(e)).join(",\n        ")}
-      ] as const;
-  
-      return [
-        ${[...subjectRules.rules]
-          .map((action) => {
-            return `[${action.condition <  0? `subjectExpressions[${-action.condition}]` :  `commonExpressions[${action.condition}]`}(), '${
-              action.mode
-            }', $SubjectActions.${subjectName}[1].createMask('${action.mode}', ${action.actions.map((e) => `'${e.name}'`).join(", ")})]`;
-          })
-          .join(",\n        ")}
-      ];
-    }`;
-      })
-      .join(",\n    ")}
-  }
+  generatePermissions(model: EcchiGeneratorModel) {
+    const { roles, subjects } = model;
+    return `
+export type $Role = ${[...roles.roles.entries()].map(([role, data]) => {
+  return `'${role.name}'`;
+}).join("|")};
+export type $Subject = ${[...subjects.entries()].map(([subject, data]) => {
+  return `'${subject.name}'`;
+}).join("|")};
+export type $Subjects = {
+  ${[...subjects.entries()].map(([subject, data]) => {
+    return `${subject.name}: ${subject.type.ref!.name};`;
+  }).join('\n  ')}
+};
+export type $Actions = {
+  ${[...subjects.entries()].map(([subject, data]) => {
+    return `${subject.name}: ${subject.members.map(a => `'${a.name}'`).join('|')};`;
+  }).join('\n  ')}
+};
+
+export type CanOptions = {
+  I: $UserType;
+  actingAs?: $Role[];
+} & (${[...subjects.entries()].map(([subject, data]) => {
+  return `{
+  when: '${subject.name}';
+  subject: ${subject.type.ref!.name};
+  allowing?: $Actions['${subject.name}'][];
+  forbiding?: $Actions['${subject.name}'][];
 }`;
-      })
-      .join("\n");
+}).join(" |  ")});
+
+export function can({ I: user, actingAs, when, subject, allowing, forbiding }: CanOptions) {
+  const commonExpressions = [
+    ${roles.expressions.map((e) => this.generateExpression(e)).join(",\n    ")}
+  ] as const;
+
+  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
+    ${[...subjects.entries()].map(([subject, _data]) => {
+    return `${subject.name}(subject: ${subject.type.ref!.name}, allowed: $Actions['${subject.name}'], forbidden: $Actions['${subject.name}']) {
+      const roleHandlers: Record<$Role, number> = {
+        ${[...roles.roles.entries()].map(([role, data]) => {
+          return `${role.name}: 0`;
+        }).join(',\n        ')}
+      };
+      return false;
+    },`;
+  }).join('\n    ')}
+  };
+  return subjectHandlers[when](subject as any, (allowing ?? []) as any, (forbiding ?? []) as any);
+}`;
   }
+  
   generateExpression(expression: OpcodeElement): string {
     let code = "";
     const op = expression.code;
@@ -255,6 +272,6 @@ export type $Types = {
     }
   }
   private generateImports() {
-    return `import { Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";`;
+    return `import { assertUnreachable, Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";`;
   }
 }

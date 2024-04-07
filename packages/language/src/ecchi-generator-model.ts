@@ -5,14 +5,13 @@ import { ExpressionBuilder, ExpressionBuilderFactoryImpl, OpcodeElement } from "
 
 export type ConceptMap = Map<ConceptDefinition, ConceptData>;
 export type SubjectMap = Map<SubjectDefinition, SubjectData>;
-export type RoleMap = Map<RoleDefinition, RoleData>;
 
 export interface EcchiGeneratorModel {
   user: ConceptDefinition|undefined;
   environment: ConceptDefinition|undefined;
   concepts: ConceptMap;
   subjects: SubjectMap;
-  roles: RoleMap;
+  roles: RoleData;
 }
 
 export interface ConceptData {
@@ -34,7 +33,7 @@ export type SubjectRules = Map<SubjectDefinition, {
 }>;
 export interface RoleData {
   expressions: OpcodeElement[];
-  rules: SubjectRules;
+  roles: Map<RoleDefinition, SubjectRules>;
 }
 
 export interface AccessRule {
@@ -56,14 +55,14 @@ export function buildGeneratorModel(model: Model): EcchiGeneratorModel {
   };
 }
 
-function getRoles(model: Model, environment: ConceptDefinition|undefined, user: ConceptDefinition, subjects: SubjectMap): RoleMap {
-  const map = new Map<RoleDefinition, RoleData>();
+function getRoles(model: Model, environment: ConceptDefinition|undefined, user: ConceptDefinition, subjects: SubjectMap): RoleData {
+  const expressions = new ExpressionBuilderFactoryImpl(environment, user);
+  const roles = new Map<RoleDefinition, SubjectRules>();
   for (const role of model.elements.filter(isRoleDefinition)) {
     const rules = new Map<SubjectDefinition, {
       expressions: OpcodeElement[];
       rules: AccessRule[];
     }>();
-    const expressions = new ExpressionBuilderFactoryImpl(environment, user);
     for (const member of role.members) {
       const subjectData = subjects.get(member.subject.ref!)!;
       const conditions = expressions.forSubject(member.subject.ref!.type.ref!);
@@ -73,12 +72,12 @@ function getRoles(model: Model, environment: ConceptDefinition|undefined, user: 
         rules: rendered,
       });
     }
-    map.set(role, {
-      expressions: expressions.commonElements,
-      rules
-    });
+    roles.set(role, rules);
   }
-  return map;
+  return {
+    expressions: expressions.commonElements,
+    roles,
+  };
 }
 
 function getSubjects(model: Model) {
