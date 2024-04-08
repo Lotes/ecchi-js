@@ -114,8 +114,11 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => commonExpressions[4]() == subjectExpressions[1](),
         (): boolean => commonExpressions[2]() && subjectExpressions[2]()
       ] as const;
-      const roleHandlers: Record<$Role, () => void> = {
-        
+      const roleHandlers: Record<$Role, (() => void)[]> = {
+        admin: [],
+        moderator: [],
+        registered: [],
+        guest: [],
       };
       return false;
     },
@@ -128,8 +131,11 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => commonExpressions[6]().includes(subjectExpressions[1]()),
         (): boolean => commonExpressions[2]() && subjectExpressions[4]()
       ] as const;
-      const roleHandlers: Record<$Role, () => void> = {
-        
+      const roleHandlers: Record<$Role, (() => void)[]> = {
+        admin: [],
+        moderator: [],
+        registered: [],
+        guest: [],
       };
       return false;
     },
@@ -146,8 +152,11 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => subjectExpressions[7]() == commonExpressions[4](),
         (): boolean => commonExpressions[2]() && subjectExpressions[8]()
       ] as const;
-      const roleHandlers: Record<$Role, () => void> = {
-        
+      const roleHandlers: Record<$Role, (() => void)[]> = {
+        admin: [],
+        moderator: [],
+        registered: [],
+        guest: [],
       };
       return false;
     },
@@ -165,8 +174,11 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => subjectExpressions[8]() == commonExpressions[4](),
         (): boolean => commonExpressions[2]() && subjectExpressions[9]()
       ] as const;
-      const roleHandlers: Record<$Role, () => void> = {
-        
+      const roleHandlers: Record<$Role, (() => void)[]> = {
+        admin: [],
+        moderator: [],
+        registered: [],
+        guest: [],
       };
       return false;
     },

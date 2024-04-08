@@ -122,12 +122,15 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
 
   const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
     ${[...subjects.entries()].map(([subject, _data]) => {
+    const subjectRules = roles.subjects.get(subject)!;
     return `${subject.name}(subject: ${subject.type.ref!.name}, allowed: $Actions['${subject.name}'], forbidden: $Actions['${subject.name}']) {
       const subjectExpressions = [
-        ${roles.subjects.get(subject)!.expressions.map((e) => this.generateExpression(e)).join(",\n        ")}
+        ${subjectRules.expressions.map((e) => this.generateExpression(e)).join(",\n        ")}
       ] as const;
-      const roleHandlers: Record<$Role, () => void> = {
-        
+      const roleHandlers: Record<$Role, (() => void)[]> = {
+        ${roles.roles.map((role) => {
+          return `${role.name}: [],`;
+        }).join("\n        ")}
       };
       return false;
     },`;
