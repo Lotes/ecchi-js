@@ -108,38 +108,65 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
 
   const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
     member(subject: Member, allowed: $Actions['member'], forbidden: $Actions['member']) {
-      const roleHandlers: Record<$Role, number> = {
-        admin: 0,
-        moderator: 0,
-        registered: 0,
-        guest: 0
+      const subjectExpressions = [
+        (): null => null,
+        (): Member => subject,
+        (): boolean => commonExpressions[4]() == subjectExpressions[1](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[2]()
+      ] as const;
+      const roleHandlers: Record<$Role, () => void> = {
+        
       };
       return false;
     },
     forum(subject: Forum, allowed: $Actions['forum'], forbidden: $Actions['forum']) {
-      const roleHandlers: Record<$Role, number> = {
-        admin: 0,
-        moderator: 0,
-        registered: 0,
-        guest: 0
+      const subjectExpressions = [
+        (): null => null,
+        (): Forum => subject,
+        (): boolean => commonExpressions[5]().includes(subjectExpressions[1]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[2](),
+        (): boolean => commonExpressions[6]().includes(subjectExpressions[1]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[4]()
+      ] as const;
+      const roleHandlers: Record<$Role, () => void> = {
+        
       };
       return false;
     },
     topic(subject: Topic, allowed: $Actions['topic'], forbidden: $Actions['topic']) {
-      const roleHandlers: Record<$Role, number> = {
-        admin: 0,
-        moderator: 0,
-        registered: 0,
-        guest: 0
+      const subjectExpressions = [
+        (): null => null,
+        (): Topic => subject,
+        (): Forum => subjectExpressions[1]().forum,
+        (): boolean => commonExpressions[6]().includes(subjectExpressions[2]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[3](),
+        (): boolean => commonExpressions[5]().includes(subjectExpressions[2]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[5](),
+        (): Member => subjectExpressions[1]().author,
+        (): boolean => subjectExpressions[7]() == commonExpressions[4](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[8]()
+      ] as const;
+      const roleHandlers: Record<$Role, () => void> = {
+        
       };
       return false;
     },
     post(subject: Post, allowed: $Actions['post'], forbidden: $Actions['post']) {
-      const roleHandlers: Record<$Role, number> = {
-        admin: 0,
-        moderator: 0,
-        registered: 0,
-        guest: 0
+      const subjectExpressions = [
+        (): null => null,
+        (): Post => subject,
+        (): Topic => subjectExpressions[1]().topic,
+        (): Forum => subjectExpressions[2]().forum,
+        (): boolean => commonExpressions[6]().includes(subjectExpressions[3]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[4](),
+        (): boolean => commonExpressions[5]().includes(subjectExpressions[3]()),
+        (): boolean => commonExpressions[2]() && subjectExpressions[6](),
+        (): Member => subjectExpressions[1]().author,
+        (): boolean => subjectExpressions[8]() == commonExpressions[4](),
+        (): boolean => commonExpressions[2]() && subjectExpressions[9]()
+      ] as const;
+      const roleHandlers: Record<$Role, () => void> = {
+        
       };
       return false;
     },

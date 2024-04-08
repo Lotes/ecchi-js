@@ -1,7 +1,7 @@
 import { NestedSetElement } from "@ecchi-js/core";
 import { ActionMember, ConceptDefinition, Expression, Model, PermissionStatement, RoleDefinition, Statement, SubjectDefinition, WhenStatement, isConceptDefinition, isPermissionStatement, isRoleDefinition, isSelectEverthing, isSubjectDefinition, isWhenStatement } from "./generated/ast.js";
 import { assertUnreachable } from "langium";
-import { ExpressionBuilder, ExpressionBuilderFactoryImpl, OpcodeElement } from "./ecchi-generator-conditions.js";
+import { ExpressionBuilder, ExpressionBuilderFactoryImpl, ExpressionBuilderImpl, OpcodeElement } from "./ecchi-generator-conditions.js";
 
 export type ConceptMap = Map<ConceptDefinition, ConceptData>;
 export type SubjectMap = Map<SubjectDefinition, SubjectData>;
@@ -27,13 +27,15 @@ export interface SubjectData {
   parents: Map<string, string|undefined>;
 }
 
-export type SubjectRules = Map<SubjectDefinition, {
+export type SubjectRules = {
   expressions: OpcodeElement[];
-  rules: AccessRule[];
-}>;
+  conditions: ExpressionBuilderImpl;
+  rules: Map<RoleDefinition, AccessRule[]>;
+};
 export interface RoleData {
   expressions: OpcodeElement[];
-  roles: Map<RoleDefinition, SubjectRules>;
+  subjects: Map<SubjectDefinition, SubjectRules>;
+  roles: RoleDefinition[];
 }
 
 export interface AccessRule {
@@ -57,25 +59,28 @@ export function buildGeneratorModel(model: Model): EcchiGeneratorModel {
 
 function getRoles(model: Model, environment: ConceptDefinition|undefined, user: ConceptDefinition, subjects: SubjectMap): RoleData {
   const expressions = new ExpressionBuilderFactoryImpl(environment, user);
-  const roles = new Map<RoleDefinition, SubjectRules>();
-  for (const role of model.elements.filter(isRoleDefinition)) {
-    const rules = new Map<SubjectDefinition, {
-      expressions: OpcodeElement[];
-      rules: AccessRule[];
-    }>();
+  const roles = model.elements.filter(isRoleDefinition);
+  const subjectRules = new Map<SubjectDefinition, SubjectRules>();
+  for (const [subject] of subjects) {
+    const conditions = expressions.forSubject(subject.type.ref!);
+    subjectRules.set(subject, {
+      expressions: conditions.subjectElements,
+      conditions,
+      rules: new Map(),
+    });
+  }
+  for (const role of roles) {
     for (const member of role.members) {
       const subjectData = subjects.get(member.subject.ref!)!;
-      const conditions = expressions.forSubject(member.subject.ref!.type.ref!);
+      const rules = subjectRules.get(member.subject.ref!)!;
+      const conditions = rules.conditions;
       const rendered = member.members.flatMap(m => renderConditionsAndRules(subjectData, m, conditions));
-      rules.set(member.subject.ref!, {
-        expressions: conditions.subjectElements,
-        rules: rendered,
-      });
+      rules.rules.set(role, rendered);
     }
-    roles.set(role, rules);
   }
   return {
     expressions: expressions.commonElements,
+    subjects: subjectRules,
     roles,
   };
 }

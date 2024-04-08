@@ -86,7 +86,7 @@ ${this.generatePermissions(model)}
   generatePermissions(model: EcchiGeneratorModel) {
     const { roles, subjects } = model;
     return `
-export type $Role = ${[...roles.roles.entries()].map(([role, data]) => {
+export type $Role = ${roles.roles.map((role) => {
   return `'${role.name}'`;
 }).join("|")};
 export type $Subject = ${[...subjects.entries()].map(([subject, data]) => {
@@ -123,10 +123,11 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
   const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
     ${[...subjects.entries()].map(([subject, _data]) => {
     return `${subject.name}(subject: ${subject.type.ref!.name}, allowed: $Actions['${subject.name}'], forbidden: $Actions['${subject.name}']) {
-      const roleHandlers: Record<$Role, number> = {
-        ${[...roles.roles.entries()].map(([role, data]) => {
-          return `${role.name}: 0`;
-        }).join(',\n        ')}
+      const subjectExpressions = [
+        ${roles.subjects.get(subject)!.expressions.map((e) => this.generateExpression(e)).join(",\n        ")}
+      ] as const;
+      const roleHandlers: Record<$Role, () => void> = {
+        
       };
       return false;
     },`;
