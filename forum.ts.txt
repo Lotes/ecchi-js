@@ -1,4 +1,4 @@
-import { assertUnreachable, Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";
+import { assertUnreachable, Reflection, SubjectActions, SubjectActionsBase } from "@ecchi-js/core";
 
 interface Member {
   $type: "Member";

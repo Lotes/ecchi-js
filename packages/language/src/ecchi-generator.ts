@@ -276,6 +276,6 @@ export type $Types = {
     }
   }
   private generateImports() {
-    return `import { assertUnreachable, Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";`;
+    return `import { assertUnreachable, Reflection, SubjectActions, SubjectActionsBase } from "@ecchi-js/core";`;
   }
 }

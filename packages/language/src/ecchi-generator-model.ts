@@ -1,7 +1,8 @@
-import { NestedSetElement } from "@ecchi-js/core";
+import { AccessRuleMode, NestedSetElement } from "@ecchi-js/core";
 import { ActionMember, ConceptDefinition, Expression, Model, PermissionStatement, RoleDefinition, Statement, SubjectDefinition, WhenStatement, isConceptDefinition, isPermissionStatement, isRoleDefinition, isSelectEverthing, isSubjectDefinition, isWhenStatement } from "./generated/ast.js";
 import { assertUnreachable } from "langium";
 import { ExpressionBuilder, ExpressionBuilderFactoryImpl, ExpressionBuilderImpl, OpcodeElement } from "./ecchi-generator-conditions.js";
+import { Bitmask } from "./ecchi-bitmasks.js";
 
 export type ConceptMap = Map<ConceptDefinition, ConceptData>;
 export type SubjectMap = Map<SubjectDefinition, SubjectData>;
@@ -25,6 +26,14 @@ export interface SubjectData {
   roots: Tree<ActionMember>[];
   hierarchy: Map<ActionMember, NestedSetElement>;
   parents: Map<string, string|undefined>;
+  actions: Map<ActionMember, ActionData>;
+}
+
+export interface ActionData {
+  allowBit: Bitmask<ActionMember>;
+  allowBitmask: Bitmask<ActionMember>;
+  forbidBit: Bitmask<ActionMember>;
+  forbidBitmask: Bitmask<ActionMember>;
 }
 
 export type SubjectRules = {
@@ -121,18 +130,53 @@ function getConcepts(model: Model) {
 }
 
 function getSubjectData(subject: SubjectDefinition): SubjectData {
-  const actions = getActions(subject);
-  const actionRoots = getHierarchy(actions, action => action.superAction?.ref?.name);
+  const byName = getActions(subject);
+  const actionRoots = getHierarchy(byName, action => action.superAction?.ref?.name);
   const actionNestedSets = getNestedSetsTraversal(actionRoots);
   const parents = new Map<string, string|undefined>();
+  const actions = new Map<ActionMember, ActionData>();
   for (const member of subject.members) {
     parents.set(member.name, member.superAction?.ref?.name);
   }
+  const bitmask = Bitmask.create<ActionMember>(subject.members)
+  for (const member of subject.members) {
+    const allowBit = bitmask.clone();
+    const forbidBit = bitmask.clone();
+    const allowBitmask = bitmask.clone();
+    const forbidBitmask = bitmask.clone();
+    allowBit.set(member, "allow", true);
+    forbidBit.set(member, "forbid", true);
+    
+    let current: string|undefined = member.name;
+    while(current) {
+      allowBitmask.set(byName.get(current)!.content, "allow", true);
+      current = parents.get(current);
+    }
+
+    const todo = [member.name];
+    while(todo.length > 0) {
+      const current = todo.pop()!;
+      const action = byName.get(current)!;
+      const children = action.children;
+      forbidBitmask.set(action.content, "allow", true);
+      for (const child of children) {
+        todo.push(child.content.name);
+      }
+    }
+
+    actions.set(member, {
+      allowBit,
+      forbidBit,
+      allowBitmask,
+      forbidBitmask,
+    });
+  }
   return {
-    instances: actions,
+    instances: byName,
     roots: actionRoots,
     hierarchy: actionNestedSets,
     parents,
+    actions,
   };
 }
 
@@ -152,7 +196,6 @@ function getActions(subject: SubjectDefinition) {
   }
   return map;
 }
-
 
 function getNestedSetsTraversal<C>(roots: Tree<C>[]) {
   const nestedSets = new Map<C, NestedSetElement>();
