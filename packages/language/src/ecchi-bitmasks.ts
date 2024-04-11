@@ -51,7 +51,7 @@ export class Bitmask<S> {
     }
     return true;
   }
-  private getBitIndices(item: S, mode: AccessRuleMode) {
+  getBitIndices(item: S, mode: AccessRuleMode) {
     const index = this.items.get(item);
     if(index === undefined) {
       return undefined;
@@ -60,5 +60,15 @@ export class Bitmask<S> {
     const byteIndex = bitOffset >> 3;
     const bitIndex = bitOffset & 7;
     return { byteIndex, bitIndex };
+  }
+  print() {
+    const nums = [...this.mask].map((byte: number) => {
+      return "0x"+byte
+        .toString(16)
+        .padStart(2, "0")
+        .toUpperCase()
+        ;
+    });
+    return `[${nums.join(", ")}]`;
   }
 }

@@ -1,4 +1,4 @@
-import { assertUnreachable, Reflection, SubjectActions, SubjectActionsBase } from "@ecchi-js/core";
+import { Reflection, or } from "@ecchi-js/core";
 
 interface Member {
   $type: "Member";
@@ -72,30 +72,35 @@ export type $Actions = {
 
 export type CanOptions = {
   I: $UserType;
+  not?: boolean;
   actingAs?: $Role[];
 } & ({
   when: 'member';
   subject: Member;
+  doWhat: $Actions['member'];
   allowing?: $Actions['member'][];
   forbiding?: $Actions['member'][];
 } |  {
   when: 'forum';
   subject: Forum;
+  doWhat: $Actions['forum'];
   allowing?: $Actions['forum'][];
   forbiding?: $Actions['forum'][];
 } |  {
   when: 'topic';
   subject: Topic;
+  doWhat: $Actions['topic'];
   allowing?: $Actions['topic'][];
   forbiding?: $Actions['topic'][];
 } |  {
   when: 'post';
   subject: Post;
+  doWhat: $Actions['post'];
   allowing?: $Actions['post'][];
   forbiding?: $Actions['post'][];
 });
 
-export function can({ I: user, actingAs, when, subject, allowing, forbiding }: CanOptions) {
+export function can({ I: user, not = false, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
   const commonExpressions = [
     (): null => null,
     (): null => null,
@@ -114,13 +119,49 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => commonExpressions[4]() == subjectExpressions[1](),
         (): boolean => commonExpressions[2]() && subjectExpressions[2]()
       ] as const;
-      const roleHandlers: Record<$Role, (() => void)[]> = {
-        admin: [],
-        moderator: [],
-        registered: [],
-        guest: [],
+      const actionBits = {
+        update: {
+          allow: [0, 0],
+          forbid: [0, 1],
+        },
+        show_profile: {
+          allow: [0, 2],
+          forbid: [0, 3],
+        },
+        follow_member: {
+          allow: [0, 4],
+          forbid: [0, 5],
+        },
+        subscribe_forum: {
+          allow: [0, 6],
+          forbid: [0, 7],
+        },
       };
-      return false;
+      const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
+        admin: [
+          () => [commonExpressions[2](), [0x55]]
+        ],
+        moderator: [
+          () => [subjectExpressions[3](), [0x51]],
+          () => [commonExpressions[2](), [0x04]]
+        ],
+        registered: [
+          () => [subjectExpressions[3](), [0x51]],
+          () => [commonExpressions[2](), [0x04]]
+        ],
+        guest: [
+          () => [commonExpressions[2](), [0xAA]]
+        ],
+      };
+      const { allow, forbid } = actionBits[doWhat];
+      const mask = actingAs.flatMap(role => roleHandlers[role])
+        .map(item => item())
+        .filter(([condition, _]) => condition)
+        .map(([_, mask]) => mask)
+        .reduce((lhs, rhs) => or(lhs, rhs));
+      return mask.length > 0 
+        && (mask[forbid[0]] & forbid[1]) === 0
+        && (mask[allow[0]] & allow[1]) !== 0;
     },
     forum(subject: Forum, allowed: $Actions['forum'], forbidden: $Actions['forum']) {
       const subjectExpressions = [
@@ -131,13 +172,49 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => commonExpressions[6]().includes(subjectExpressions[1]()),
         (): boolean => commonExpressions[2]() && subjectExpressions[4]()
       ] as const;
-      const roleHandlers: Record<$Role, (() => void)[]> = {
-        admin: [],
-        moderator: [],
-        registered: [],
-        guest: [],
+      const actionBits = {
+        create: {
+          allow: [0, 0],
+          forbid: [0, 1],
+        },
+        read: {
+          allow: [0, 2],
+          forbid: [0, 3],
+        },
+        update: {
+          allow: [0, 4],
+          forbid: [0, 5],
+        },
+        delete: {
+          allow: [0, 6],
+          forbid: [0, 7],
+        },
       };
-      return false;
+      const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
+        admin: [
+          () => [commonExpressions[2](), [0x55]]
+        ],
+        moderator: [
+          () => [subjectExpressions[3](), [0x04]],
+          () => [subjectExpressions[5](), [0x51]]
+        ],
+        registered: [
+          () => [subjectExpressions[3](), [0x04]]
+        ],
+        guest: [
+          () => [commonExpressions[2](), [0x04]],
+          () => [commonExpressions[2](), [0xA2]]
+        ],
+      };
+      const { allow, forbid } = actionBits[doWhat];
+      const mask = actingAs.flatMap(role => roleHandlers[role])
+        .map(item => item())
+        .filter(([condition, _]) => condition)
+        .map(([_, mask]) => mask)
+        .reduce((lhs, rhs) => or(lhs, rhs));
+      return mask.length > 0 
+        && (mask[forbid[0]] & forbid[1]) === 0
+        && (mask[allow[0]] & allow[1]) !== 0;
     },
     topic(subject: Topic, allowed: $Actions['topic'], forbidden: $Actions['topic']) {
       const subjectExpressions = [
@@ -152,13 +229,49 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => subjectExpressions[7]() == commonExpressions[4](),
         (): boolean => commonExpressions[2]() && subjectExpressions[8]()
       ] as const;
-      const roleHandlers: Record<$Role, (() => void)[]> = {
-        admin: [],
-        moderator: [],
-        registered: [],
-        guest: [],
+      const actionBits = {
+        create: {
+          allow: [0, 0],
+          forbid: [0, 1],
+        },
+        read: {
+          allow: [0, 2],
+          forbid: [0, 3],
+        },
+        update: {
+          allow: [0, 4],
+          forbid: [0, 5],
+        },
+        delete: {
+          allow: [0, 6],
+          forbid: [0, 7],
+        },
       };
-      return false;
+      const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
+        admin: [
+          () => [commonExpressions[2](), [0x55]]
+        ],
+        moderator: [
+          () => [subjectExpressions[4](), [0x55]]
+        ],
+        registered: [
+          () => [subjectExpressions[6](), [0x05]],
+          () => [subjectExpressions[9](), [0x10]]
+        ],
+        guest: [
+          () => [commonExpressions[2](), [0x04]],
+          () => [commonExpressions[2](), [0xA2]]
+        ],
+      };
+      const { allow, forbid } = actionBits[doWhat];
+      const mask = actingAs.flatMap(role => roleHandlers[role])
+        .map(item => item())
+        .filter(([condition, _]) => condition)
+        .map(([_, mask]) => mask)
+        .reduce((lhs, rhs) => or(lhs, rhs));
+      return mask.length > 0 
+        && (mask[forbid[0]] & forbid[1]) === 0
+        && (mask[allow[0]] & allow[1]) !== 0;
     },
     post(subject: Post, allowed: $Actions['post'], forbidden: $Actions['post']) {
       const subjectExpressions = [
@@ -174,13 +287,49 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         (): boolean => subjectExpressions[8]() == commonExpressions[4](),
         (): boolean => commonExpressions[2]() && subjectExpressions[9]()
       ] as const;
-      const roleHandlers: Record<$Role, (() => void)[]> = {
-        admin: [],
-        moderator: [],
-        registered: [],
-        guest: [],
+      const actionBits = {
+        create: {
+          allow: [0, 0],
+          forbid: [0, 1],
+        },
+        read: {
+          allow: [0, 2],
+          forbid: [0, 3],
+        },
+        update: {
+          allow: [0, 4],
+          forbid: [0, 5],
+        },
+        delete: {
+          allow: [0, 6],
+          forbid: [0, 7],
+        },
       };
-      return false;
+      const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
+        admin: [
+          () => [commonExpressions[2](), [0x55]]
+        ],
+        moderator: [
+          () => [subjectExpressions[5](), [0x55]]
+        ],
+        registered: [
+          () => [subjectExpressions[7](), [0x05]],
+          () => [subjectExpressions[10](), [0x50]]
+        ],
+        guest: [
+          () => [commonExpressions[2](), [0x04]],
+          () => [commonExpressions[2](), [0xA2]]
+        ],
+      };
+      const { allow, forbid } = actionBits[doWhat];
+      const mask = actingAs.flatMap(role => roleHandlers[role])
+        .map(item => item())
+        .filter(([condition, _]) => condition)
+        .map(([_, mask]) => mask)
+        .reduce((lhs, rhs) => or(lhs, rhs));
+      return mask.length > 0 
+        && (mask[forbid[0]] & forbid[1]) === 0
+        && (mask[allow[0]] & allow[1]) !== 0;
     },
   };
   return subjectHandlers[when](subject as any, (allowing ?? []) as any, (forbiding ?? []) as any);

@@ -25,3 +25,7 @@ export function memoize(func: Function) {
 export function assertUnreachable(_: never): never {
   throw new Error('Error! The input value was not handled.');
 }
+
+export function or(lhs: number[], rhs: number[]): number[] {
+  return lhs.map((value, index) => value | rhs[index]);
+}

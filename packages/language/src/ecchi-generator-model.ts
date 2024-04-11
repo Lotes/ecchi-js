@@ -22,18 +22,15 @@ export interface ConceptData {
 }
 
 export interface SubjectData {
-  instances: Map<string, Tree<ActionMember>>;
-  roots: Tree<ActionMember>[];
-  hierarchy: Map<ActionMember, NestedSetElement>;
-  parents: Map<string, string|undefined>;
   actions: Map<ActionMember, ActionData>;
 }
 
-export interface ActionData {
-  allowBit: Bitmask<ActionMember>;
-  allowBitmask: Bitmask<ActionMember>;
-  forbidBit: Bitmask<ActionMember>;
-  forbidBitmask: Bitmask<ActionMember>;
+export type ActionData = Record<AccessRuleMode, BitBitmask>;
+
+export interface BitBitmask {
+  byteIndex: number;
+  bitIndex: number;
+  bitmask: Bitmask<ActionMember>;
 }
 
 export type SubjectRules = {
@@ -41,6 +38,7 @@ export type SubjectRules = {
   conditions: ExpressionBuilderImpl;
   rules: Map<RoleDefinition, AccessRule[]>;
 };
+
 export interface RoleData {
   expressions: OpcodeElement[];
   subjects: Map<SubjectDefinition, SubjectRules>;
@@ -131,21 +129,15 @@ function getConcepts(model: Model) {
 
 function getSubjectData(subject: SubjectDefinition): SubjectData {
   const byName = getActions(subject);
-  const actionRoots = getHierarchy(byName, action => action.superAction?.ref?.name);
-  const actionNestedSets = getNestedSetsTraversal(actionRoots);
   const parents = new Map<string, string|undefined>();
   const actions = new Map<ActionMember, ActionData>();
   for (const member of subject.members) {
     parents.set(member.name, member.superAction?.ref?.name);
   }
-  const bitmask = Bitmask.create<ActionMember>(subject.members)
+  const bitmask = Bitmask.create<ActionMember>(subject.members);
   for (const member of subject.members) {
-    const allowBit = bitmask.clone();
-    const forbidBit = bitmask.clone();
     const allowBitmask = bitmask.clone();
     const forbidBitmask = bitmask.clone();
-    allowBit.set(member, "allow", true);
-    forbidBit.set(member, "forbid", true);
     
     let current: string|undefined = member.name;
     while(current) {
@@ -158,24 +150,24 @@ function getSubjectData(subject: SubjectDefinition): SubjectData {
       const current = todo.pop()!;
       const action = byName.get(current)!;
       const children = action.children;
-      forbidBitmask.set(action.content, "allow", true);
+      forbidBitmask.set(action.content, "forbid", true);
       for (const child of children) {
         todo.push(child.content.name);
       }
     }
 
     actions.set(member, {
-      allowBit,
-      forbidBit,
-      allowBitmask,
-      forbidBitmask,
+      allow: {
+        ...bitmask.getBitIndices(member, "allow")!,
+        bitmask: allowBitmask,
+      },
+      forbid: {
+        ...bitmask.getBitIndices(member, "forbid")!,
+        bitmask: forbidBitmask,
+      }
     });
   }
   return {
-    instances: byName,
-    roots: actionRoots,
-    hierarchy: actionNestedSets,
-    parents,
     actions,
   };
 }
@@ -212,20 +204,6 @@ function getNestedSetsTraversal<C>(roots: Tree<C>[]) {
     visit(node);
   }
   return nestedSets;
-}
-
-function getHierarchy<K, V>(map: Map<K, Tree<V>>, getParent: (child: V) => K|undefined) {
-  const roots: Tree<V>[] = [];
-  for (const node of map.values()) {
-    const parent = getParent(node.content);
-    if (parent) {
-      const superNode = map.get(parent)!;
-      superNode.children.push(node);
-    } else {
-      roots.push(node);
-    }
-  }
-  return roots;
 }
 
 function renderConditionsAndRules(
@@ -312,7 +290,7 @@ function renderConditionsAndRules(
   function renderPermissionStatement(statement: PermissionStatement, subject: SubjectData): AccessRule[] {
     const mode = statement.allows ? "allow" : "forbid";
     const actions = isSelectEverthing(statement.actions)
-      ? [...subject.hierarchy.keys()]
+      ? [...subject.actions.keys()]
       : statement.actions.actions.map(e => e.action.ref).filter(e => e !== undefined) as ActionMember[];
     return [{
       actions,

@@ -1,9 +1,9 @@
 import { URI, assertUnreachable } from "langium";
 import { EcchiServices, createEcchiServices } from "./ecchi-module.js";
 import {
+  ActionMember,
   ConceptDefinition,
   Model,
-  SubjectDefinition,
   TypeReference,
 } from "./generated/ast.js";
 import { EmptyFileSystem } from "langium";
@@ -11,10 +11,10 @@ import { readFile } from "fs/promises";
 import {
   ConceptMap,
   EcchiGeneratorModel,
-  SubjectData,
   buildGeneratorModel,
 } from "./ecchi-generator-model.js";
 import { OpcodeElement } from "./ecchi-generator-conditions.js";
+import { Bitmask } from "./ecchi-bitmasks.js";
 
 export async function generate(fileName: string) {
   const services = createEcchiServices(EmptyFileSystem);
@@ -69,9 +69,7 @@ export class EcchiGenerator {
     }
   }
   async generate(model: EcchiGeneratorModel) {
-    const { concepts, user, subjects } = model;
-    //${this.generateSubjectActions(subjects)}
-    //${this.generateRoles(model)}
+    const { concepts, user } = model;
     return `${this.generateImports()}
 
 ${this.generateTypes(concepts)}
@@ -105,49 +103,73 @@ export type $Actions = {
 
 export type CanOptions = {
   I: $UserType;
+  not?: boolean;
   actingAs?: $Role[];
 } & (${[...subjects.entries()].map(([subject, data]) => {
   return `{
   when: '${subject.name}';
   subject: ${subject.type.ref!.name};
+  doWhat: $Actions['${subject.name}'];
   allowing?: $Actions['${subject.name}'][];
   forbiding?: $Actions['${subject.name}'][];
 }`;
 }).join(" |  ")});
 
-export function can({ I: user, actingAs, when, subject, allowing, forbiding }: CanOptions) {
+export function can({ I: user, not = false, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
   const commonExpressions = [
     ${roles.expressions.map((e) => this.generateExpression(e)).join(",\n    ")}
   ] as const;
 
   const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
-    ${[...subjects.entries()].map(([subject, _data]) => {
+    ${[...subjects.entries()].map(([subject, data]) => {
     const subjectRules = roles.subjects.get(subject)!;
     return `${subject.name}(subject: ${subject.type.ref!.name}, allowed: $Actions['${subject.name}'], forbidden: $Actions['${subject.name}']) {
       const subjectExpressions = [
         ${subjectRules.expressions.map((e) => this.generateExpression(e)).join(",\n        ")}
       ] as const;
-      const roleHandlers: Record<$Role, (() => void)[]> = {
-        ${roles.roles.map((role) => {
-          return `${role.name}: [],`;
+      const actionBits = {
+        ${[...data.actions.entries()].map(([action, bitmasks]) => {
+          return `${action.name}: {
+          allow: [${bitmasks.allow.byteIndex}, ${bitmasks.allow.bitIndex}],
+          forbid: [${bitmasks.forbid.byteIndex}, ${bitmasks.forbid.bitIndex}],
+        },`;
         }).join("\n        ")}
       };
-      return false;
+      const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
+        ${roles.roles.map((role) => {
+          const rules = roles.subjects.get(subject)!.rules.get(role) ?? [];
+          return `${role.name}: [
+          ${rules.map((r) => {
+              const masks = r.actions.map(a => subjects.get(subject)!.actions.get(a)![r.mode].bitmask);
+              const finalMask = Bitmask.or<ActionMember>(...masks);
+              return `() => [${this.getExpression(r.condition)}, ${finalMask.print()}]`;
+          }).join(",\n          ")}
+        ],`;
+        }).join("\n        ")}
+      };
+      const { allow, forbid } = actionBits[doWhat];
+      const mask = actingAs.flatMap(role => roleHandlers[role])
+        .map(item => item())
+        .filter(([condition, _]) => condition)
+        .map(([_, mask]) => mask)
+        .reduce((lhs, rhs) => or(lhs, rhs));
+      return mask.length > 0 
+        && (mask[forbid[0]] & forbid[1]) === 0
+        && (mask[allow[0]] & allow[1]) !== 0;
     },`;
   }).join('\n    ')}
   };
   return subjectHandlers[when](subject as any, (allowing ?? []) as any, (forbiding ?? []) as any);
 }`;
   }
-  
+  getExpression(operandIndex: number) {
+    return operandIndex > 0 
+      ? `commonExpressions[${operandIndex}]()`
+      : `subjectExpressions[${-operandIndex}]()`;
+  }
   generateExpression(expression: OpcodeElement): string {
     let code = "";
     const op = expression.code;
-    function get(operandIndex: number) {
-      return operandIndex > 0 
-        ? `commonExpressions[${operandIndex}]()`
-        : `subjectExpressions[${-operandIndex}]()`;
-    }
     switch (op.op) {
       case "null":
         code = `null`;
@@ -160,9 +182,9 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         break;
       case "binary":
         if(op.operator === 'in') {
-          code = `${get(op.rightOperandIndex)}.includes(${get(op.leftOperandIndex)})`;
+          code = `${this.getExpression(op.rightOperandIndex)}.includes(${this.getExpression(op.leftOperandIndex)})`;
         } else {
-          code = `${get(op.leftOperandIndex)} ${op.operator} ${get(op.rightOperandIndex)}`;
+          code = `${this.getExpression(op.leftOperandIndex)} ${op.operator} ${this.getExpression(op.rightOperandIndex)}`;
         }
         break;
       case "string":
@@ -172,16 +194,16 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
         code = `${op.value}`;
         break;
       case "unary":
-        code = `${op.operator}${get(op.operandIndex)}`;
+        code = `${op.operator}${this.getExpression(op.operandIndex)}`;
         break;
       case "get-property":
-        code = `${get(op.receiverOperandIndex)}.${op.property}`;
+        code = `${this.getExpression(op.receiverOperandIndex)}.${op.property}`;
         break;
       case "is":
-        code = `$Reflection.isSubTypeOf(${get(op.operandIndex)}.$type, '${op.type}')`;
+        code = `$Reflection.isSubTypeOf(${this.getExpression(op.operandIndex)}.$type, '${op.type}')`;
         break;
       case "array-get":
-        code = `${get(op.receiverOperandIndex)}[${get(op.indexOperandIndex)}]`;
+        code = `${this.getExpression(op.receiverOperandIndex)}[${this.getExpression(op.indexOperandIndex)}]`;
         break;
       default:
         assertUnreachable(op);
@@ -191,27 +213,6 @@ export function can({ I: user, actingAs, when, subject, allowing, forbiding }: C
   }
   generateUser(user: ConceptDefinition | undefined) {
     return `export type $UserType = ${user?.name};`;
-  }
-  generateSubjectActions(map: Map<SubjectDefinition, SubjectData>) {
-    return `export const $SubjectActions = {
-  ${[...map.keys()]
-    .map((subject) => {
-      const { parents, hierarchy: nestedSets, instances } = map.get(subject)!;
-      const type = [...parents.keys()].map((a) => `'${a}'`).join("|");
-      return `${subject.name}: ["${
-        subject.type?.ref?.name
-      }", new SubjectActions<${type}>({
-    ${[...instances.entries()]
-      .map(([action, tree], index) => {
-        const [left, right] = nestedSets.get(tree.content)!;
-        return `${action}: [[${left}, ${right}],  ${index}]`;
-      })
-      .join(",\n    ")}
-  })]`;
-    })
-    .join(",\n  ")}
-} satisfies SubjectActionsBase<$Types>;    
-`;
   }
   private generateReflection(concepts: ConceptMap) {
     return `export const $Reflection = new Reflection<$Types>({
@@ -276,6 +277,6 @@ export type $Types = {
     }
   }
   private generateImports() {
-    return `import { assertUnreachable, Reflection, SubjectActions, SubjectActionsBase } from "@ecchi-js/core";`;
+    return `import { Reflection, or } from "@ecchi-js/core";`;
   }
 }
