@@ -72,7 +72,6 @@ export type $Actions = {
 
 export type CanOptions = {
   I: $UserType;
-  not?: boolean;
   actingAs?: $Role[];
 } & ({
   when: 'member';
@@ -100,7 +99,7 @@ export type CanOptions = {
   forbiding?: $Actions['post'][];
 });
 
-export function can({ I: user, not = false, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
+export function can({ I: user, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
   const commonExpressions = [
     (): null => null,
     (): null => null,
@@ -159,7 +158,7 @@ export function can({ I: user, not = false, actingAs = [], when, subject, allowi
         .filter(([condition, _]) => condition)
         .map(([_, mask]) => mask)
         .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0 
+      return mask.length > 0
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },
@@ -212,7 +211,7 @@ export function can({ I: user, not = false, actingAs = [], when, subject, allowi
         .filter(([condition, _]) => condition)
         .map(([_, mask]) => mask)
         .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0 
+      return mask.length > 0
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },
@@ -269,7 +268,7 @@ export function can({ I: user, not = false, actingAs = [], when, subject, allowi
         .filter(([condition, _]) => condition)
         .map(([_, mask]) => mask)
         .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0 
+      return mask.length > 0
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },
@@ -327,7 +326,7 @@ export function can({ I: user, not = false, actingAs = [], when, subject, allowi
         .filter(([condition, _]) => condition)
         .map(([_, mask]) => mask)
         .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0 
+      return mask.length > 0
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },

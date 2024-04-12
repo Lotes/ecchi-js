@@ -103,7 +103,6 @@ export type $Actions = {
 
 export type CanOptions = {
   I: $UserType;
-  not?: boolean;
   actingAs?: $Role[];
 } & (${[...subjects.entries()].map(([subject, data]) => {
   return `{
@@ -115,7 +114,7 @@ export type CanOptions = {
 }`;
 }).join(" |  ")});
 
-export function can({ I: user, not = false, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
+export function can({ I: user, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
   const commonExpressions = [
     ${roles.expressions.map((e) => this.generateExpression(e)).join(",\n    ")}
   ] as const;
@@ -153,7 +152,7 @@ export function can({ I: user, not = false, actingAs = [], when, subject, allowi
         .filter(([condition, _]) => condition)
         .map(([_, mask]) => mask)
         .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0 
+      return mask.length > 0
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },`;
