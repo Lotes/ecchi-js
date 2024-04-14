@@ -1,27 +1,53 @@
 import { describe, test, expect } from "vitest";
-import { ExpressionsModule, memoize } from "../src/conditions.js";
+import { CommonModule, Key, SubjectModule, cacheCommonExpressions, cacheSubjectExpressions } from "../src/conditions.js";
+import { LRUCache } from "../src/cache.js";
 
 describe("Conditions", () => {
-  test("should be able to use conditions", async () => {
+  test("common cache should work", async () => {
     //arrange
     type Ctx = [number, number, boolean];
-    const XXX: ExpressionsModule<Ctx> = [
+    const XXX: CommonModule<Ctx> = [
       () => 0,
       () => new Date().getTime(),
       (common) => common[0] < common[1]
     ];
-    const cache = new Map<string, Ctx>();
-    const xxx = memoize(XXX, [], cache);
+    const cache = new LRUCache<Key, Ctx>(10);
 
     //act
-    const value = xxx[1];
+    const xxx = cacheCommonExpressions(XXX, [], cache);
+    const value1 = xxx[1];
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const value2 = xxx[1];
 
     //assert
-    await new Promise((resolve) => setTimeout(resolve, 100));
     expect(xxx[0]).toBe(0);
-    expect(xxx[1]).toBe(value);
+    expect(value2).toBe(value1);
     expect(xxx[2]).toBe(true);
-    const yyy = memoize(XXX, [1], cache);
+    const yyy = cacheCommonExpressions(XXX, [1], cache);
     expect(yyy[1]).not.toBe(xxx[1]);
+  });
+
+  test("subject cache should work", async () => {
+    //arrange
+    type Common = [number, number, number];
+    type Subject = [number, number, number];
+    const XXX: CommonModule<Common> = [
+      () => 123,
+      () => 456,
+      (common) => common[0] + common[1]
+    ];
+    const YYY: SubjectModule<Common, Subject> = [
+      (common) => common[0],
+      (common) => common[1],
+      (common, subject) => common[2] + subject[0] + subject[1]
+    ];
+    const cache = new LRUCache<Key, Common|Subject>(10);
+    
+    //act
+    const common = cacheCommonExpressions<Common>(XXX, [1], cache);
+    const subject = cacheSubjectExpressions<Common, Subject>(common, YYY, [1], cache);
+
+    //assert
+    expect(subject[2]).toBe((123+456)*2);
   });
 });
