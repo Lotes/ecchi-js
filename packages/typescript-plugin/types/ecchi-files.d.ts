@@ -3,7 +3,7 @@ declare module "*.ecchi" {
   export type $UserType = TypeBase;
   export type $EnvironmentType = TypeBase|undefined;
   export type $Types = Record<string, TypeBase>;
-  export const $Reflection = Reflection<$Types>;
+  export const $Reflection: Reflection<$Types>;
   export type $Role = string;
   export type $Subject = string;
   export type $Subjects = Record<$Subject, TypeBase>;
@@ -11,7 +11,7 @@ declare module "*.ecchi" {
   export type CanOptions = {
     I: $UserType;
     actingAs?: $Role[];
-    cache?: Cache<Key, any>;
+    cache?: Cache;
     when: string;
     subject: TypeBase;
     doWhat: string;

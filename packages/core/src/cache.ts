@@ -1,25 +1,20 @@
-export interface Cache<K, T> {
-  hash: (key: K) => string;
+export interface Cache {
   has: (hash: string) => boolean;
-  get: (hash: string) => T|null;
-  set: (hash: string, value: T) => void;
+  get: (hash: string) => unknown|null;
+  set: (hash: string, value: unknown) => void;
 }
 
-export class LRUCache<K, T> implements Cache<K, T> {
-  private cache: Map<string, T> = new Map();
+export class LRUCache implements Cache {
+  private cache: Map<string, unknown> = new Map();
   private keys: string[] = [];
 
   constructor(private max: number) {}
-
-  hash(key: K): string {
-    return JSON.stringify(key);
-  }
 
   has(hash: string): boolean {
     return this.cache.has(hash);
   }
 
-  get(hash: string): T|null {
+  get(hash: string): unknown|null {
     if (this.cache.has(hash)) {
       this.keys = this.keys.filter((key) => key !== hash);
       this.keys.push(hash);
@@ -28,7 +23,7 @@ export class LRUCache<K, T> implements Cache<K, T> {
     return null;
   }
 
-  set(hash: string, value: T): void {
+  set(hash: string, value: unknown): void {
     if (this.cache.size >= this.max) {
       const key = this.keys.shift();
       if (key) {

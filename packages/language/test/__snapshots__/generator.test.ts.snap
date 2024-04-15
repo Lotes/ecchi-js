@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`ecchi-generator > blog 1`] = `
-"import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key, merge } from "@ecchi-js/core";
+"import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, merge } from "@ecchi-js/core";
 
 interface UserType {
   $type: "UserType";
@@ -73,7 +73,7 @@ export type $Actions = {
 export type CanOptions = {
   I: $UserType;
   actingAs?: $Role[];
-  cache?: Cache<Key, any>;
+  cache?: Cache;
 } & ({
   when: 'Article';
   subject: ArticleType;
@@ -84,7 +84,7 @@ export type CanOptions = {
   doWhat: $Actions['Comment'];
 });
 
-const DefaultCache = new LRUCache<Key, any>(128);
+const DefaultCache = new LRUCache(128);
 
 export function can({
   I: user,

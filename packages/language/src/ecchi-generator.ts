@@ -104,7 +104,7 @@ export type $Actions = {
 export type CanOptions = {
   I: $UserType;
   actingAs?: $Role[];
-  cache?: Cache<Key, any>;
+  cache?: Cache;
 } & (${[...subjects.entries()].map(([subject, data]) => {
   return `{
   when: '${subject.name}';
@@ -113,7 +113,7 @@ export type CanOptions = {
 }`;
 }).join(" |  ")});
 
-const DefaultCache = new LRUCache<Key, any>(128);
+const DefaultCache = new LRUCache(128);
 
 export function can({
   I: user,
@@ -319,6 +319,6 @@ export type $Types = {
     }
   }
   private generateImports() {
-    return `import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key, merge } from "@ecchi-js/core";`;
+    return `import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, merge } from "@ecchi-js/core";`;
   }
 }

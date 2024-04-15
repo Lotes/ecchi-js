@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { CommonModule, Key, SubjectModule, cacheCommonExpressions, cacheSubjectExpressions } from "../src/expressions.js";
+import { CommonModule, SubjectModule, cacheCommonExpressions, cacheSubjectExpressions } from "../src/expressions.js";
 import { LRUCache } from "../src/cache.js";
 
 describe("Expressions", () => {
@@ -11,7 +11,7 @@ describe("Expressions", () => {
       () => new Date().getTime(),
       (common) => common[0] < common[1]
     ];
-    const cache = new LRUCache<Key, Ctx>(10);
+    const cache = new LRUCache(10);
 
     //act
     const xxx = cacheCommonExpressions(XXX, [], cache);
@@ -41,7 +41,7 @@ describe("Expressions", () => {
       (common) => common[1],
       (common, subject) => common[2] + subject[0] + subject[1]
     ];
-    const cache = new LRUCache<Key, Common|Subject>(10);
+    const cache = new LRUCache(10);
 
     //act
     const common = cacheCommonExpressions<Common>(XXX, [1], cache);

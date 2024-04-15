@@ -16,27 +16,14 @@ export type SubjectModule<
   ) => SubjectCtx[I];
 };
 
-export type Key =
-  | {
-      type: "common";
-      value: unknown;
-    }
-  | {
-      type: "subject";
-      value: unknown;
-    };
-
 export function cacheCommonExpressions<Context extends Obj = []>(
   module: CommonModule<Context>,
   keys: unknown[],
-  cache: Cache<Key, Context>
+  cache: Cache
 ): Context {
-  const hash = cache.hash({
-    type: "common",
-    value: keys,
-  });
+  const hash = JSON.stringify({type: 'common', keys});
   if (cache.has(hash)) {
-    return cache.get(hash)!;
+    return cache.get(hash)! as Context;
   }
   const get = (obj: any, prop: PropertyKey, proxy: any) => {
     const ctr = proxy;
@@ -69,11 +56,11 @@ export function cacheSubjectExpressions<
   commonProxy: CommonContext,
   subject: SubjectModule<CommonContext, SubjectContext>,
   keys: unknown[],
-  cache: Cache<Key, SubjectContext>
+  cache: Cache
 ): SubjectContext {
-  const hash = cache.hash({ type: "subject", value: keys });
+  const hash = JSON.stringify({type:'subject',keys});
   if (cache.has(hash)) {
-    return cache.get(hash)!;
+    return cache.get(hash)! as SubjectContext;
   }
   const get = (obj: any, prop: PropertyKey, proxy: any) => {
     const ctr = proxy;
