@@ -13,7 +13,7 @@ import {
   EcchiGeneratorModel,
   buildGeneratorModel,
 } from "./ecchi-generator-model.js";
-import { OpcodeElement } from "./ecchi-generator-conditions.js";
+import { Opcode, OpcodeElement } from "./ecchi-generator-conditions.js";
 import { Bitmask } from "./ecchi-bitmasks.js";
 
 export async function generate(fileName: string) {
@@ -104,33 +104,43 @@ export type $Actions = {
 export type CanOptions = {
   I: $UserType;
   actingAs?: $Role[];
+  cache?: Cache<Key, any>;
 } & (${[...subjects.entries()].map(([subject, data]) => {
   return `{
   when: '${subject.name}';
   subject: ${subject.type.ref!.name};
   doWhat: $Actions['${subject.name}'];
-  allowing?: $Actions['${subject.name}'][];
-  forbiding?: $Actions['${subject.name}'][];
 }`;
 }).join(" |  ")});
 
-export function can({ I: user, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
-  const commonExpressions = [
-    ${roles.expressions.map((e) => this.generateExpression(e)).join(",\n    ")}
-  ] as const;
+const DefaultCache = new LRUCache<Key, any>(128);
 
-  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
+export function can({
+  I: user,
+  actingAs = [],
+  when,
+  subject,
+  doWhat,
+  cache = DefaultCache
+}: CanOptions) {
+  type Common = readonly [${roles.expressions.map((e) => this.generateTypeReference(e.type)).join(", ")}];
+  const commonExpressions = cacheCommonExpressions<Common>([
+    ${roles.expressions.map((e) => this.generateCommonExpression(e)).join(",\n    ")}
+  ] as const, [user], cache);
+
+  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K]) => boolean} = {
     ${[...subjects.entries()].map(([subject, data]) => {
     const subjectRules = roles.subjects.get(subject)!;
-    return `${subject.name}(subject: ${subject.type.ref!.name}, allowed: $Actions['${subject.name}'], forbidden: $Actions['${subject.name}']) {
-      const subjectExpressions = [
-        ${subjectRules.expressions.map((e) => this.generateExpression(e)).join(",\n        ")}
-      ] as const;
+    return `${subject.name}(subject: ${subject.type.ref!.name}) {
+      type Subject = readonly [${subjectRules.expressions.map((e) => this.generateTypeReference(e.type)).join(", ")}];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
+        ${subjectRules.expressions.map((e) => this.generateSubjectExpression(e)).join(",\n        ")}
+      ] as const, [subject], cache);
       const actionBits = {
         ${[...data.actions.entries()].map(([action, bitmasks]) => {
           return `${action.name}: {
-          allow: [${bitmasks.allow.byteIndex}, ${bitmasks.allow.bitIndex}],
-          forbid: [${bitmasks.forbid.byteIndex}, ${bitmasks.forbid.bitIndex}],
+          allow: [${bitmasks.allow.byteIndex}, 1 << ${bitmasks.allow.bitIndex}],
+          forbid: [${bitmasks.forbid.byteIndex}, 1 << ${bitmasks.forbid.bitIndex}],
         },`;
         }).join("\n        ")}
       };
@@ -141,7 +151,7 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
           ${rules.map((r) => {
               const masks = r.actions.map(a => subjects.get(subject)!.actions.get(a)![r.mode].bitmask);
               const finalMask = Bitmask.or<ActionMember>(...masks);
-              return `() => [${this.getExpression(r.condition)}, ${finalMask.print()}]`;
+              return `() => [${this.getOuterExpression(r.condition)}, ${finalMask.print()}]`;
           }).join(",\n          ")}
         ],`;
         }).join("\n        ")}
@@ -158,17 +168,46 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
     },`;
   }).join('\n    ')}
   };
-  return subjectHandlers[when](subject as any, (allowing ?? []) as any, (forbiding ?? []) as any);
+  return subjectHandlers[when](subject as any);
 }`;
   }
-  getExpression(operandIndex: number) {
+  getInnerExpression(operandIndex: number) {
     return operandIndex > 0 
-      ? `commonExpressions[${operandIndex}]()`
-      : `subjectExpressions[${-operandIndex}]()`;
+      ? `commons[${operandIndex}]`
+      : `subjects[${-operandIndex}]`;
   }
-  generateExpression(expression: OpcodeElement): string {
-    let code = "";
+  getOuterExpression(operandIndex: number) {
+    return operandIndex > 0 
+      ? `commonExpressions[${operandIndex}]`
+      : `subjectExpressions[${-operandIndex}]`;
+  }
+  generateCommonExpression(expression: OpcodeElement): string {
     const op = expression.code;
+    const { code, usesCommon } = this.generateCode(op);
+    const type = this.toJSType(expression.type);
+    return `(${usesCommon ? 'commons' : ''}): ${type} => ${code}`;
+  }
+  generateSubjectExpression(expression: OpcodeElement): string {
+    const op = expression.code;
+    const { code, usesCommon, usesSubject } = this.generateCode(op);
+    const type = this.toJSType(expression.type);
+    return `(${usesCommon ? 'commons, ' : usesSubject ? '_common, ' : ''}${usesSubject ? 'subjects' : ''}): ${type} => ${code}`;
+  }
+  private generateCode(op: Opcode): {
+    code: string;
+    usesCommon: boolean;
+    usesSubject: boolean;
+  } {
+    let usesCommon = false;
+    let usesSubject = false;
+    let code: string;
+    const checkOperandIndex = (index: number) => {
+      if (index > 0) {
+        usesCommon = true;
+      } else {
+        usesSubject = true;
+      }
+    };
     switch (op.op) {
       case "null":
         code = `null`;
@@ -180,10 +219,12 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
         code = `${op.object}`;
         break;
       case "binary":
-        if(op.operator === 'in') {
-          code = `${this.getExpression(op.rightOperandIndex)}.includes(${this.getExpression(op.leftOperandIndex)})`;
+        checkOperandIndex(op.leftOperandIndex);
+        checkOperandIndex(op.rightOperandIndex);
+        if (op.operator === 'in') {
+          code = `${this.getInnerExpression(op.rightOperandIndex)}.includes(${this.getInnerExpression(op.leftOperandIndex)})`;
         } else {
-          code = `${this.getExpression(op.leftOperandIndex)} ${op.operator} ${this.getExpression(op.rightOperandIndex)}`;
+          code = `${this.getInnerExpression(op.leftOperandIndex)} ${op.operator} ${this.getInnerExpression(op.rightOperandIndex)}`;
         }
         break;
       case "string":
@@ -193,23 +234,32 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
         code = `${op.value}`;
         break;
       case "unary":
-        code = `${op.operator}${this.getExpression(op.operandIndex)}`;
+        checkOperandIndex(op.operandIndex);
+        code = `${op.operator}${this.getInnerExpression(op.operandIndex)}`;
         break;
       case "get-property":
-        code = `${this.getExpression(op.receiverOperandIndex)}.${op.property}`;
+        checkOperandIndex(op.receiverOperandIndex);
+        code = `${this.getInnerExpression(op.receiverOperandIndex)}.${op.property}`;
         break;
       case "is":
-        code = `$Reflection.isSubTypeOf(${this.getExpression(op.operandIndex)}.$type, '${op.type}')`;
+        checkOperandIndex(op.operandIndex);
+        code = `$Reflection.isSubTypeOf(${this.getInnerExpression(op.operandIndex)}.$type, '${op.type}')`;
         break;
       case "array-get":
-        code = `${this.getExpression(op.receiverOperandIndex)}[${this.getExpression(op.indexOperandIndex)}]`;
+        checkOperandIndex(op.receiverOperandIndex);
+        checkOperandIndex(op.indexOperandIndex);
+        code = `${this.getInnerExpression(op.receiverOperandIndex)}[${this.getInnerExpression(op.indexOperandIndex)}]`;
         break;
       default:
         assertUnreachable(op);
     }
-    const type = this.toJSType(expression.type);
-    return `(): ${type} => ${code}`;
+    return {
+      code,
+      usesCommon,
+      usesSubject,
+    };
   }
+
   generateUser(user: ConceptDefinition | undefined) {
     return `export type $UserType = ${user?.name};`;
   }
@@ -276,6 +326,6 @@ export type $Types = {
     }
   }
   private generateImports() {
-    return `import { Reflection, or } from "@ecchi-js/core";`;
+    return `import { Reflection, or, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key } from "@ecchi-js/core";`;
   }
 }

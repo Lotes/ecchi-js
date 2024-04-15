@@ -1,8 +1,8 @@
 import { describe, test, expect } from "vitest";
-import { CommonModule, Key, SubjectModule, cacheCommonExpressions, cacheSubjectExpressions } from "../src/conditions.js";
+import { CommonModule, Key, SubjectModule, cacheCommonExpressions, cacheSubjectExpressions } from "../src/expressions.js";
 import { LRUCache } from "../src/cache.js";
 
-describe("Conditions", () => {
+describe("Expressions", () => {
   test("common cache should work", async () => {
     //arrange
     type Ctx = [number, number, boolean];
@@ -42,7 +42,7 @@ describe("Conditions", () => {
       (common, subject) => common[2] + subject[0] + subject[1]
     ];
     const cache = new LRUCache<Key, Common|Subject>(10);
-    
+
     //act
     const common = cacheCommonExpressions<Common>(XXX, [1], cache);
     const subject = cacheSubjectExpressions<Common, Subject>(common, YYY, [1], cache);

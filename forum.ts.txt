@@ -1,4 +1,4 @@
-import { Reflection, or } from "@ecchi-js/core";
+import { Reflection, or, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key } from "@ecchi-js/core";
 
 interface Member {
   $type: "Member";
@@ -73,83 +73,87 @@ export type $Actions = {
 export type CanOptions = {
   I: $UserType;
   actingAs?: $Role[];
+  cache?: Cache<Key, any>;
 } & ({
   when: 'member';
   subject: Member;
   doWhat: $Actions['member'];
-  allowing?: $Actions['member'][];
-  forbiding?: $Actions['member'][];
 } |  {
   when: 'forum';
   subject: Forum;
   doWhat: $Actions['forum'];
-  allowing?: $Actions['forum'][];
-  forbiding?: $Actions['forum'][];
 } |  {
   when: 'topic';
   subject: Topic;
   doWhat: $Actions['topic'];
-  allowing?: $Actions['topic'][];
-  forbiding?: $Actions['topic'][];
 } |  {
   when: 'post';
   subject: Post;
   doWhat: $Actions['post'];
-  allowing?: $Actions['post'][];
-  forbiding?: $Actions['post'][];
 });
 
-export function can({ I: user, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
-  const commonExpressions = [
+const DefaultCache = new LRUCache<Key, any>(128);
+
+export function can({
+  I: user,
+  actingAs = [],
+  when,
+  subject,
+  doWhat,
+  cache = DefaultCache
+}: CanOptions) {
+  type Common = readonly [null, null, boolean, boolean, Member, Forum[], Forum[]];
+  const commonExpressions = cacheCommonExpressions<Common>([
     (): null => null,
     (): null => null,
     (): boolean => true,
     (): boolean => false,
     (): Member => user,
-    (): Forum[] => commonExpressions[4]().memberFor,
-    (): Forum[] => commonExpressions[4]().moderatorFor
-  ] as const;
+    (commons): Forum[] => commons[4].memberFor,
+    (commons): Forum[] => commons[4].moderatorFor
+  ] as const, [user], cache);
 
-  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
-    member(subject: Member, allowed: $Actions['member'], forbidden: $Actions['member']) {
-      const subjectExpressions = [
+  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K]) => boolean} = {
+    member(subject: Member) {
+      type Subject = readonly [null, Member, boolean, boolean];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
         (): null => null,
         (): Member => subject,
-        (): boolean => commonExpressions[4]() == subjectExpressions[1](),
-        (): boolean => commonExpressions[2]() && subjectExpressions[2]()
-      ] as const;
+        (commons, subjects): boolean => commons[4] == subjects[1],
+        (commons, subjects): boolean => commons[2] && subjects[2]
+      ] as const, [subject], cache);
       const actionBits = {
         update: {
-          allow: [0, 0],
-          forbid: [0, 1],
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
         },
         show_profile: {
-          allow: [0, 2],
-          forbid: [0, 3],
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
         },
         follow_member: {
-          allow: [0, 4],
-          forbid: [0, 5],
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
         },
         subscribe_forum: {
-          allow: [0, 6],
-          forbid: [0, 7],
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
         },
       };
       const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
         admin: [
-          () => [commonExpressions[2](), [0x55]]
+          () => [commonExpressions[2], [0x55]]
         ],
         moderator: [
-          () => [subjectExpressions[3](), [0x51]],
-          () => [commonExpressions[2](), [0x04]]
+          () => [subjectExpressions[3], [0x51]],
+          () => [commonExpressions[2], [0x04]]
         ],
         registered: [
-          () => [subjectExpressions[3](), [0x51]],
-          () => [commonExpressions[2](), [0x04]]
+          () => [subjectExpressions[3], [0x51]],
+          () => [commonExpressions[2], [0x04]]
         ],
         guest: [
-          () => [commonExpressions[2](), [0xAA]]
+          () => [commonExpressions[2], [0xAA]]
         ],
       };
       const { allow, forbid } = actionBits[doWhat];
@@ -162,47 +166,48 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },
-    forum(subject: Forum, allowed: $Actions['forum'], forbidden: $Actions['forum']) {
-      const subjectExpressions = [
+    forum(subject: Forum) {
+      type Subject = readonly [null, Forum, boolean, boolean, boolean, boolean];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
         (): null => null,
         (): Forum => subject,
-        (): boolean => commonExpressions[5]().includes(subjectExpressions[1]()),
-        (): boolean => commonExpressions[2]() && subjectExpressions[2](),
-        (): boolean => commonExpressions[6]().includes(subjectExpressions[1]()),
-        (): boolean => commonExpressions[2]() && subjectExpressions[4]()
-      ] as const;
+        (commons, subjects): boolean => commons[5].includes(subjects[1]),
+        (commons, subjects): boolean => commons[2] && subjects[2],
+        (commons, subjects): boolean => commons[6].includes(subjects[1]),
+        (commons, subjects): boolean => commons[2] && subjects[4]
+      ] as const, [subject], cache);
       const actionBits = {
         create: {
-          allow: [0, 0],
-          forbid: [0, 1],
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
         },
         read: {
-          allow: [0, 2],
-          forbid: [0, 3],
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
         },
         update: {
-          allow: [0, 4],
-          forbid: [0, 5],
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
         },
         delete: {
-          allow: [0, 6],
-          forbid: [0, 7],
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
         },
       };
       const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
         admin: [
-          () => [commonExpressions[2](), [0x55]]
+          () => [commonExpressions[2], [0x55]]
         ],
         moderator: [
-          () => [subjectExpressions[3](), [0x04]],
-          () => [subjectExpressions[5](), [0x51]]
+          () => [subjectExpressions[3], [0x04]],
+          () => [subjectExpressions[5], [0x51]]
         ],
         registered: [
-          () => [subjectExpressions[3](), [0x04]]
+          () => [subjectExpressions[3], [0x04]]
         ],
         guest: [
-          () => [commonExpressions[2](), [0x04]],
-          () => [commonExpressions[2](), [0xA2]]
+          () => [commonExpressions[2], [0x04]],
+          () => [commonExpressions[2], [0xA2]]
         ],
       };
       const { allow, forbid } = actionBits[doWhat];
@@ -215,51 +220,52 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },
-    topic(subject: Topic, allowed: $Actions['topic'], forbidden: $Actions['topic']) {
-      const subjectExpressions = [
+    topic(subject: Topic) {
+      type Subject = readonly [null, Topic, Forum, boolean, boolean, boolean, boolean, Member, boolean, boolean];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
         (): null => null,
         (): Topic => subject,
-        (): Forum => subjectExpressions[1]().forum,
-        (): boolean => commonExpressions[6]().includes(subjectExpressions[2]()),
-        (): boolean => commonExpressions[2]() && subjectExpressions[3](),
-        (): boolean => commonExpressions[5]().includes(subjectExpressions[2]()),
-        (): boolean => commonExpressions[2]() && subjectExpressions[5](),
-        (): Member => subjectExpressions[1]().author,
-        (): boolean => subjectExpressions[7]() == commonExpressions[4](),
-        (): boolean => commonExpressions[2]() && subjectExpressions[8]()
-      ] as const;
+        (_common, subjects): Forum => subjects[1].forum,
+        (commons, subjects): boolean => commons[6].includes(subjects[2]),
+        (commons, subjects): boolean => commons[2] && subjects[3],
+        (commons, subjects): boolean => commons[5].includes(subjects[2]),
+        (commons, subjects): boolean => commons[2] && subjects[5],
+        (_common, subjects): Member => subjects[1].author,
+        (commons, subjects): boolean => subjects[7] == commons[4],
+        (commons, subjects): boolean => commons[2] && subjects[8]
+      ] as const, [subject], cache);
       const actionBits = {
         create: {
-          allow: [0, 0],
-          forbid: [0, 1],
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
         },
         read: {
-          allow: [0, 2],
-          forbid: [0, 3],
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
         },
         update: {
-          allow: [0, 4],
-          forbid: [0, 5],
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
         },
         delete: {
-          allow: [0, 6],
-          forbid: [0, 7],
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
         },
       };
       const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
         admin: [
-          () => [commonExpressions[2](), [0x55]]
+          () => [commonExpressions[2], [0x55]]
         ],
         moderator: [
-          () => [subjectExpressions[4](), [0x55]]
+          () => [subjectExpressions[4], [0x55]]
         ],
         registered: [
-          () => [subjectExpressions[6](), [0x05]],
-          () => [subjectExpressions[9](), [0x10]]
+          () => [subjectExpressions[6], [0x05]],
+          () => [subjectExpressions[9], [0x10]]
         ],
         guest: [
-          () => [commonExpressions[2](), [0x04]],
-          () => [commonExpressions[2](), [0xA2]]
+          () => [commonExpressions[2], [0x04]],
+          () => [commonExpressions[2], [0xA2]]
         ],
       };
       const { allow, forbid } = actionBits[doWhat];
@@ -272,52 +278,53 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
         && (mask[forbid[0]] & forbid[1]) === 0
         && (mask[allow[0]] & allow[1]) !== 0;
     },
-    post(subject: Post, allowed: $Actions['post'], forbidden: $Actions['post']) {
-      const subjectExpressions = [
+    post(subject: Post) {
+      type Subject = readonly [null, Post, Topic, Forum, boolean, boolean, boolean, boolean, Member, boolean, boolean];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
         (): null => null,
         (): Post => subject,
-        (): Topic => subjectExpressions[1]().topic,
-        (): Forum => subjectExpressions[2]().forum,
-        (): boolean => commonExpressions[6]().includes(subjectExpressions[3]()),
-        (): boolean => commonExpressions[2]() && subjectExpressions[4](),
-        (): boolean => commonExpressions[5]().includes(subjectExpressions[3]()),
-        (): boolean => commonExpressions[2]() && subjectExpressions[6](),
-        (): Member => subjectExpressions[1]().author,
-        (): boolean => subjectExpressions[8]() == commonExpressions[4](),
-        (): boolean => commonExpressions[2]() && subjectExpressions[9]()
-      ] as const;
+        (_common, subjects): Topic => subjects[1].topic,
+        (_common, subjects): Forum => subjects[2].forum,
+        (commons, subjects): boolean => commons[6].includes(subjects[3]),
+        (commons, subjects): boolean => commons[2] && subjects[4],
+        (commons, subjects): boolean => commons[5].includes(subjects[3]),
+        (commons, subjects): boolean => commons[2] && subjects[6],
+        (_common, subjects): Member => subjects[1].author,
+        (commons, subjects): boolean => subjects[8] == commons[4],
+        (commons, subjects): boolean => commons[2] && subjects[9]
+      ] as const, [subject], cache);
       const actionBits = {
         create: {
-          allow: [0, 0],
-          forbid: [0, 1],
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
         },
         read: {
-          allow: [0, 2],
-          forbid: [0, 3],
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
         },
         update: {
-          allow: [0, 4],
-          forbid: [0, 5],
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
         },
         delete: {
-          allow: [0, 6],
-          forbid: [0, 7],
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
         },
       };
       const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
         admin: [
-          () => [commonExpressions[2](), [0x55]]
+          () => [commonExpressions[2], [0x55]]
         ],
         moderator: [
-          () => [subjectExpressions[5](), [0x55]]
+          () => [subjectExpressions[5], [0x55]]
         ],
         registered: [
-          () => [subjectExpressions[7](), [0x05]],
-          () => [subjectExpressions[10](), [0x50]]
+          () => [subjectExpressions[7], [0x05]],
+          () => [subjectExpressions[10], [0x50]]
         ],
         guest: [
-          () => [commonExpressions[2](), [0x04]],
-          () => [commonExpressions[2](), [0xA2]]
+          () => [commonExpressions[2], [0x04]],
+          () => [commonExpressions[2], [0xA2]]
         ],
       };
       const { allow, forbid } = actionBits[doWhat];
@@ -331,5 +338,5 @@ export function can({ I: user, actingAs = [], when, subject, allowing = [], forb
         && (mask[allow[0]] & allow[1]) !== 0;
     },
   };
-  return subjectHandlers[when](subject as any, (allowing ?? []) as any, (forbiding ?? []) as any);
+  return subjectHandlers[when](subject as any);
 }

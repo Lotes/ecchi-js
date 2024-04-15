@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`execute 1`] = `
-"import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";
+"import { Reflection, SubjectActions, SubjectActionsBase, Bitmask } from "@ecchi-js/core";
 
 interface UserType {
   $type: "UserType";
@@ -25,6 +25,8 @@ export type $UserType = UserType;
 export const $SubjectActions = {
   
 } satisfies SubjectActionsBase<$Types>;    
+
+
 
 "
 `;
