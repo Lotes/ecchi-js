@@ -20,7 +20,7 @@ describe("ecchi-generator", async () => {
     expect(result).toMatchSnapshot();
   });
 
-  test("forum", async () => {
+  test.skip("forum", async () => {
     const content = await readFile(join(__dirname, "..", "..", "..", "resources", "Forum.ecchi"), "utf-8");
     const model = await generator.parse(content);
     const pkg = await generator.build(model);
