@@ -157,14 +157,7 @@ export function can({
         }).join("\n        ")}
       };
       const { allow, forbid } = actionBits[doWhat];
-      const mask = actingAs.flatMap(role => roleHandlers[role])
-        .map(item => item())
-        .filter(([condition, _]) => condition)
-        .map(([_, mask]) => mask)
-        .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0
-        && (mask[forbid[0]] & forbid[1]) === 0
-        && (mask[allow[0]] & allow[1]) !== 0;
+      return merge(allow, forbid, actingAs, roleHandlers);
     },`;
   }).join('\n    ')}
   };
@@ -326,6 +319,6 @@ export type $Types = {
     }
   }
   private generateImports() {
-    return `import { Reflection, or, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key } from "@ecchi-js/core";`;
+    return `import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key, merge } from "@ecchi-js/core";`;
   }
 }

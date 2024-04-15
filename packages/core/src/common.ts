@@ -13,3 +13,22 @@ export function assertUnreachable(_: never): never {
 export function or(lhs: number[], rhs: number[]): number[] {
   return lhs.map((value, index) => value | rhs[index]);
 }
+
+export function merge(
+  allow: [number, number],
+  forbid: [number, number],
+  roles: string[],
+  handlers: Record<string, (() => [boolean, number[]])[]>
+) {
+  const mask = roles
+    .flatMap((role) => handlers[role])
+    .map((item) => item())
+    .filter(([condition, _]) => condition)
+    .map(([_, mask]) => mask)
+    .reduce((lhs, rhs) => or(lhs, rhs));
+  return (
+    mask.length > 0 &&
+    (mask[forbid[0]] & forbid[1]) === 0 &&
+    (mask[allow[0]] & allow[1]) !== 0
+  );
+}
