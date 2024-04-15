@@ -4,5 +4,5 @@ import { expect, test } from "vitest";
 
 test("final test", () => {
   const output = spawnSync(process.execPath, [join(__dirname, '..', 'out', 'index.js')], {encoding: 'utf-8'});
-  expect(output.stdout).not.toContain("undefined");
+  expect(output.stdout).toBe("true\n");
 });

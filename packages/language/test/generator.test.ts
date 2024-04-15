@@ -1,14 +1,30 @@
-import { test, expect } from "vitest";
+import { test, expect, describe, beforeAll } from "vitest";
 import { EcchiGenerator } from "../src/ecchi-generator.js";
 import { createEcchiServices } from "../src/ecchi-module.js";
 import { EmptyFileSystem } from "langium";
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 
-test("ecchi-generator", async () => {
-  const services = createEcchiServices(EmptyFileSystem);
-  const generator = new EcchiGenerator(services.Ecchi);
-  const content = await readFile(join(__dirname, "..", "..", "..", "resources", "Blog.ecchi"), "utf-8");
-  const result = await generator.generate(content);
-  expect(result).toMatchSnapshot();
+describe("ecchi-generator", async () => {
+  let generator: EcchiGenerator;
+  beforeAll(async () => {
+    const services = createEcchiServices(EmptyFileSystem);
+    generator = new EcchiGenerator(services.Ecchi);
+  });
+
+  test("blog", async () => {
+    const content = await readFile(join(__dirname, "..", "..", "..", "resources", "Blog.ecchi"), "utf-8");
+    const model = await generator.parse(content);
+    const pkg = await generator.build(model);
+    const result = await generator.generate(pkg);
+    expect(result).toMatchSnapshot();
+  });
+
+  test.skip("forum", async () => {
+    const content = await readFile(join(__dirname, "..", "..", "..", "resources", "Forum.ecchi"), "utf-8");
+    const model = await generator.parse(content);
+    const pkg = await generator.build(model);
+    const result = await generator.generate(pkg);
+    writeFile("forum.ts.txt", result);
+  });
 });

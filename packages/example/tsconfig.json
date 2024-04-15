@@ -19,6 +19,6 @@
     }],
     "typeRoots": ["src/*.d.ts"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../../node_modules/@ecchi-js/typescript-plugin/types/ecchi-files.d.ts"],
   "exclude": ["dist"]
 }

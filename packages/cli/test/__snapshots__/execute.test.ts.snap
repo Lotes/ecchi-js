@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`execute 1`] = `
-"import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";
+"import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key, merge } from "@ecchi-js/core";
 
 interface UserType {
   $type: "UserType";
@@ -22,9 +22,41 @@ export const $Reflection = new Reflection<$Types>({
 
 export type $UserType = UserType;
 
-export const $SubjectActions = {
-  
-} satisfies SubjectActionsBase<$Types>;    
 
+export type $Role = ;
+export type $Subject = ;
+export type $Subjects = {
+  
+};
+export type $Actions = {
+  
+};
+
+export type CanOptions = {
+  I: $UserType;
+  actingAs?: $Role[];
+  cache?: Cache<Key, any>;
+} & ();
+
+const DefaultCache = new LRUCache<Key, any>(128);
+
+export function can({
+  I: user,
+  actingAs = [],
+  when,
+  subject,
+  doWhat,
+  cache = DefaultCache
+}: CanOptions) {
+  type Common = readonly [null];
+  const commonExpressions = cacheCommonExpressions<Common>([
+    (): null => null
+  ] as const, [user], cache);
+
+  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K]) => boolean} = {
+    
+  };
+  return subjectHandlers[when](subject as any);
+}
 "
 `;

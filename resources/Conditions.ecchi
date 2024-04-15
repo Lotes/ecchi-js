@@ -1,0 +1,42 @@
+use User as user
+
+concept User { 
+  id: number;
+  name: string;
+}
+
+concept Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+subject simple of Product {
+  action aaa
+  action bbb
+  action ccc
+}
+
+subject difficult of Product {
+  action aaa
+  action bbb
+  action ccc
+}
+
+role Admin {
+  for difficult {}
+  for simple {
+    allow aaa
+    when user.id == -1 {
+      allow bbb
+    }
+    when user is Product {
+      allow ccc bbb
+    } otherwise {
+      forbid ccc
+    }
+    when subject.name == "test" {
+      allow ccc
+    }
+  }
+}

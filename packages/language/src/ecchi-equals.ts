@@ -10,6 +10,9 @@ export function equalTypes(a: TypeReference, b: TypeReference): boolean {
     case 'ConceptReference':
       assert(b.$type === 'ConceptReference');
       return equalDefinitions(a.type.ref, b.type.ref);
+    case 'ArrayType':
+      assert(b.$type === 'ArrayType');
+      return equalTypes(a.type, b.type);
     case 'BooleanType':
     case 'NullType':
     case 'NumberType':

@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ecchi-generator 1`] = `
-"import { Reflection, RoleRules, SubjectActions, SubjectActionsBase, not } from "@ecchi-js/core";
+exports[`ecchi-generator > blog 1`] = `
+"import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, merge } from "@ecchi-js/core";
 
 interface UserType {
   $type: "UserType";
@@ -58,24 +58,147 @@ export const $Reflection = new Reflection<$Types>({
 
 export type $UserType = UserType;
 
-export const $SubjectActions = {
-  Article: ["ArticleType", new SubjectActions<'create'|'read'|'edit'|'archive'|'publish'|'delete'>({
-    create: [[0, 1],  0],
-    read: [[2, 11],  1],
-    edit: [[3, 10],  2],
-    archive: [[4, 7],  3],
-    publish: [[8, 9],  4],
-    delete: [[5, 6],  5]
-  })],
-  Comment: ["CommentType", new SubjectActions<'read'|'answer'|'edit'|'archive'|'delete'|'publish'>({
-    read: [[0, 11],  0],
-    answer: [[1, 2],  1],
-    edit: [[3, 10],  2],
-    archive: [[4, 7],  3],
-    delete: [[5, 6],  4],
-    publish: [[8, 9],  5]
-  })]
-} satisfies SubjectActionsBase<$Types>;    
 
+export type $Role = 'AdminUser'|'NormalUser';
+export type $Subject = 'Article'|'Comment';
+export type $Subjects = {
+  Article: ArticleType;
+  Comment: CommentType;
+};
+export type $Actions = {
+  Article: 'create'|'read'|'edit'|'archive'|'publish'|'delete';
+  Comment: 'read'|'answer'|'edit'|'archive'|'delete'|'publish';
+};
+
+export type CanOptions = {
+  I: $UserType;
+  actingAs?: $Role[];
+  cache?: Cache;
+} & ({
+  when: 'Article';
+  subject: ArticleType;
+  doWhat: $Actions['Article'];
+} |  {
+  when: 'Comment';
+  subject: CommentType;
+  doWhat: $Actions['Comment'];
+});
+
+const DefaultCache = new LRUCache(128);
+
+export function can({
+  I: user,
+  actingAs = [],
+  when,
+  subject,
+  doWhat,
+  cache = DefaultCache
+}: CanOptions) {
+  type Common = readonly [null, null, boolean, boolean, UserType, number];
+  const commonExpressions = cacheCommonExpressions<Common>([
+    (): null => null,
+    (): null => null,
+    (): boolean => true,
+    (): boolean => false,
+    (): UserType => user,
+    (commons): number => commons[4].id
+  ] as const, [user], cache);
+
+  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K]) => boolean} = {
+    Article(subject: ArticleType) {
+      type Subject = readonly [null, ArticleType, UserType, number, boolean, boolean, boolean, boolean];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
+        (): null => null,
+        (): ArticleType => subject,
+        (_common, subjects): UserType => subjects[1].author,
+        (_common, subjects): number => subjects[2].id,
+        (commons, subjects): boolean => commons[5] == subjects[3],
+        (commons, subjects): boolean => commons[2] && subjects[4],
+        (_common, subjects): boolean => !subjects[4],
+        (commons, subjects): boolean => commons[2] && subjects[6]
+      ] as const, [subject], cache);
+      const actionBits = {
+        create: {
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
+        },
+        read: {
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
+        },
+        edit: {
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
+        },
+        archive: {
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
+        },
+        publish: {
+          allow: [1, 1 << 0],
+          forbid: [1, 1 << 1],
+        },
+        delete: {
+          allow: [1, 1 << 2],
+          forbid: [1, 1 << 3],
+        },
+      };
+      const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
+        AdminUser: [
+          () => [commonExpressions[2], [0x55, 0x05]]
+        ],
+        NormalUser: [
+          () => [subjectExpressions[5], [0x54, 0x00]],
+          () => [subjectExpressions[7], [0x04, 0x00]]
+        ],
+      };
+      const { allow, forbid } = actionBits[doWhat];
+      return merge(allow, forbid, actingAs, roleHandlers);
+    },
+    Comment(subject: CommentType) {
+      type Subject = readonly [null];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
+        (): null => null
+      ] as const, [subject], cache);
+      const actionBits = {
+        read: {
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
+        },
+        answer: {
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
+        },
+        edit: {
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
+        },
+        archive: {
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
+        },
+        delete: {
+          allow: [1, 1 << 0],
+          forbid: [1, 1 << 1],
+        },
+        publish: {
+          allow: [1, 1 << 2],
+          forbid: [1, 1 << 3],
+        },
+      };
+      const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
+        AdminUser: [
+          () => [commonExpressions[2], [0x55, 0x05]]
+        ],
+        NormalUser: [
+          
+        ],
+      };
+      const { allow, forbid } = actionBits[doWhat];
+      return merge(allow, forbid, actingAs, roleHandlers);
+    },
+  };
+  return subjectHandlers[when](subject as any);
+}
 "
 `;
