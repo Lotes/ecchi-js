@@ -1,10 +1,20 @@
 declare module "*.ecchi" {
-  import type { Reflection, SubjectActionsBase, TypeBase } from "@ecchi-js/core";
+  import type { Reflection, TypeBase } from "@ecchi-js/core";
   export type $UserType = TypeBase;
   export type $EnvironmentType = TypeBase|undefined;
   export type $Types = Record<string, TypeBase>;
   export const $Reflection = Reflection<$Types>;
-  export const $SubjectActions: Record<string, SubjectActionsBase>;
-  export const $Conditions: Record<string, (user: $UserType, article: TypeBase) => boolean>;
-  export const $Roles: Record<string, RoleRules<$UserType, $Types, typeof $SubjectActions>>;
+  export type $Role = string;
+  export type $Subject = string;
+  export type $Subjects = Record<$Subject, TypeBase>;
+  export type $Actions = Record<$Subject, string>;
+  export type CanOptions = {
+    I: $UserType;
+    actingAs?: $Role[];
+    cache?: Cache<Key, any>;
+    when: string;
+    subject: TypeBase;
+    doWhat: string;
+  }
+  export function can(options: CanOptions);
 }

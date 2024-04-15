@@ -1,3 +1,4 @@
+export type AccessRuleMode = 'allow' | 'forbid';
 export type NestedSetElement = [number, number];
 
 export function isSubTreeOf(sub: NestedSetElement, sup: NestedSetElement): boolean {

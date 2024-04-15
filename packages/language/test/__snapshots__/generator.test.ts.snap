@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`ecchi-generator > blog 1`] = `
-"import { Reflection, or, LRUCache, cacheCommonExpressions, cacheSubjectExpressions } from "@ecchi-js/core";
+"import { Reflection, Cache, LRUCache, cacheCommonExpressions, cacheSubjectExpressions, Key, merge } from "@ecchi-js/core";
 
 interface UserType {
   $type: "UserType";
@@ -73,137 +73,132 @@ export type $Actions = {
 export type CanOptions = {
   I: $UserType;
   actingAs?: $Role[];
+  cache?: Cache<Key, any>;
 } & ({
   when: 'Article';
   subject: ArticleType;
   doWhat: $Actions['Article'];
-  allowing?: $Actions['Article'][];
-  forbiding?: $Actions['Article'][];
 } |  {
   when: 'Comment';
   subject: CommentType;
   doWhat: $Actions['Comment'];
-  allowing?: $Actions['Comment'][];
-  forbiding?: $Actions['Comment'][];
 });
 
-export function can({ I: user, actingAs = [], when, subject, allowing = [], forbiding = [], doWhat }: CanOptions) {
-  const commonExpressions = [
+const DefaultCache = new LRUCache<Key, any>(128);
+
+export function can({
+  I: user,
+  actingAs = [],
+  when,
+  subject,
+  doWhat,
+  cache = DefaultCache
+}: CanOptions) {
+  type Common = readonly [null, null, boolean, boolean, UserType, number];
+  const commonExpressions = cacheCommonExpressions<Common>([
     (): null => null,
     (): null => null,
     (): boolean => true,
     (): boolean => false,
     (): UserType => user,
-    (): number => commonExpressions[4]().id
-  ] as const;
+    (commons): number => commons[4].id
+  ] as const, [user], cache);
 
-  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K], allowed: $Actions[K], forbidden: $Actions[K]) => boolean} = {
-    Article(subject: ArticleType, allowed: $Actions['Article'], forbidden: $Actions['Article']) {
-      const subjectExpressions = [
+  const subjectHandlers: { [K in $Subject]: (subject: $Subjects[K]) => boolean} = {
+    Article(subject: ArticleType) {
+      type Subject = readonly [null, ArticleType, UserType, number, boolean, boolean, boolean, boolean];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
         (): null => null,
         (): ArticleType => subject,
-        (): UserType => subjectExpressions[1]().author,
-        (): number => subjectExpressions[2]().id,
-        (): boolean => commonExpressions[5]() == subjectExpressions[3](),
-        (): boolean => commonExpressions[2]() && subjectExpressions[4](),
-        (): boolean => !subjectExpressions[4](),
-        (): boolean => commonExpressions[2]() && subjectExpressions[6]()
-      ] as const;
+        (_common, subjects): UserType => subjects[1].author,
+        (_common, subjects): number => subjects[2].id,
+        (commons, subjects): boolean => commons[5] == subjects[3],
+        (commons, subjects): boolean => commons[2] && subjects[4],
+        (_common, subjects): boolean => !subjects[4],
+        (commons, subjects): boolean => commons[2] && subjects[6]
+      ] as const, [subject], cache);
       const actionBits = {
         create: {
-          allow: [0, 0],
-          forbid: [0, 1],
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
         },
         read: {
-          allow: [0, 2],
-          forbid: [0, 3],
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
         },
         edit: {
-          allow: [0, 4],
-          forbid: [0, 5],
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
         },
         archive: {
-          allow: [0, 6],
-          forbid: [0, 7],
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
         },
         publish: {
-          allow: [1, 0],
-          forbid: [1, 1],
+          allow: [1, 1 << 0],
+          forbid: [1, 1 << 1],
         },
         delete: {
-          allow: [1, 2],
-          forbid: [1, 3],
+          allow: [1, 1 << 2],
+          forbid: [1, 1 << 3],
         },
       };
       const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
         AdminUser: [
-          () => [commonExpressions[2](), [0x55, 0x05]]
+          () => [commonExpressions[2], [0x55, 0x05]]
         ],
         NormalUser: [
-          () => [subjectExpressions[5](), [0x54, 0x00]],
-          () => [subjectExpressions[7](), [0x04, 0x00]]
+          () => [subjectExpressions[5], [0x54, 0x00]],
+          () => [subjectExpressions[7], [0x04, 0x00]]
         ],
       };
       const { allow, forbid } = actionBits[doWhat];
-      const mask = actingAs.flatMap(role => roleHandlers[role])
-        .map(item => item())
-        .filter(([condition, _]) => condition)
-        .map(([_, mask]) => mask)
-        .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0
-        && (mask[forbid[0]] & forbid[1]) === 0
-        && (mask[allow[0]] & allow[1]) !== 0;
+      return merge(allow, forbid, actingAs, roleHandlers);
     },
-    Comment(subject: CommentType, allowed: $Actions['Comment'], forbidden: $Actions['Comment']) {
-      const subjectExpressions = [
+    Comment(subject: CommentType) {
+      type Subject = readonly [null];
+      const subjectExpressions = cacheSubjectExpressions<Common, Subject>(commonExpressions, [
         (): null => null
-      ] as const;
+      ] as const, [subject], cache);
       const actionBits = {
         read: {
-          allow: [0, 0],
-          forbid: [0, 1],
+          allow: [0, 1 << 0],
+          forbid: [0, 1 << 1],
         },
         answer: {
-          allow: [0, 2],
-          forbid: [0, 3],
+          allow: [0, 1 << 2],
+          forbid: [0, 1 << 3],
         },
         edit: {
-          allow: [0, 4],
-          forbid: [0, 5],
+          allow: [0, 1 << 4],
+          forbid: [0, 1 << 5],
         },
         archive: {
-          allow: [0, 6],
-          forbid: [0, 7],
+          allow: [0, 1 << 6],
+          forbid: [0, 1 << 7],
         },
         delete: {
-          allow: [1, 0],
-          forbid: [1, 1],
+          allow: [1, 1 << 0],
+          forbid: [1, 1 << 1],
         },
         publish: {
-          allow: [1, 2],
-          forbid: [1, 3],
+          allow: [1, 1 << 2],
+          forbid: [1, 1 << 3],
         },
       };
       const roleHandlers: Record<$Role, (() => [boolean, number[]])[]> = {
         AdminUser: [
-          () => [commonExpressions[2](), [0x55, 0x05]]
+          () => [commonExpressions[2], [0x55, 0x05]]
         ],
         NormalUser: [
           
         ],
       };
       const { allow, forbid } = actionBits[doWhat];
-      const mask = actingAs.flatMap(role => roleHandlers[role])
-        .map(item => item())
-        .filter(([condition, _]) => condition)
-        .map(([_, mask]) => mask)
-        .reduce((lhs, rhs) => or(lhs, rhs));
-      return mask.length > 0
-        && (mask[forbid[0]] & forbid[1]) === 0
-        && (mask[allow[0]] & allow[1]) !== 0;
+      return merge(allow, forbid, actingAs, roleHandlers);
     },
   };
-  return subjectHandlers[when](subject as any, (allowing ?? []) as any, (forbiding ?? []) as any);
+  return subjectHandlers[when](subject as any);
 }
 "
 `;
